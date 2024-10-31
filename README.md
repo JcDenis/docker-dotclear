@@ -15,15 +15,16 @@ tool allowing anyone to publish on the web, regardless of their technical skills
 This repository contains all features to build or run Dotclear on a Docker environment.
 It is hightly based on work from [darknao](https://github.com/darknao/docker-dotclear).
 
-Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear)
+* Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear)
+* Dotclear docker sources are avaialable at [Github repository](https://github.com/JcDenis/docker-dotclear)
 
 ### TAGS
 
 dotclear_version-server_type
 
-* jcpd/docker-dotclear:latest is base on Debian / Nginx / PHP-FPM
-* jcpd/docker-dotclear:x.xx-dnf is based on  Debian / Nginx / PHP-FPM
-* jcpd/docker-dotclear:x.xx-anf is based on  Alpine / Nginx / PHP-FPM
+* jcpd/docker-dotclear:latest is base on stable Debian / Nginx / PHP-FPM
+* jcpd/docker-dotclear:x.xx-dnf is based on stable Debian / Nginx / PHP-FPM
+* jcpd/docker-dotclear:x.xx-anf is based on stable Alpine / Nginx / PHP-FPM
 * ... (next to come)
 
 Exemple of a docker compose file with a mariadb database.
@@ -63,11 +64,11 @@ Exemple of a docker compose file with a mariadb database.
 
 Then execute 
 
-    docker-compuse  up -d
+    docker-compose up -d
 
 Dotclear is now available on your server host at http://locahost:8080/
 
-Before Dotclear 2.32, on first run, Dotclear does installation process, you must provide :
+Before Dotclear 2.32, on first run, Dotclear does installation process, you must provide values of :
 * MySQl database container service name as database host (here dc_db)
 * MYSQL_DATABASE as database name
 * MYSQL_USER as database login
@@ -80,9 +81,11 @@ On first run you should wait that container download ans install required versio
 ## TODO
 
 * Disable upgrade from Dotclear. Should only use upgrade from container restart ?
+* or Fix downgrade on container restart when Dotclear has been upgraded from UI.
 * Use auto installation from container environment variables.
 * Add support of Dotclear's DEBUG mode for Dotclear and logs.
 * Add better cache management. From another container or from Dotclear container.
+* Add mail support.
 * Enhance server and php configuration. From x.conf files.
 * Add builds from Alpine and Apache and maybe without FPM.
 
