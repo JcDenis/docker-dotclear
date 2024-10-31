@@ -1,0 +1,8 @@
+# docker-dotclear:latest
+services:
+  dc_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker-dotclear:latest # debian nginx php-fpm
+    container_name: dotclear

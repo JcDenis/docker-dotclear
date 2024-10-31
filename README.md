@@ -71,6 +71,7 @@ Before Dotclear 2.32, on first run, Dotclear does installation process, you must
 * MYSQL_DATABASE as database name
 * MYSQL_USER as database login
 * MYSQL_PASSWORD as database password
+
 On first run you should wait that container download ans install required version of Dotclear...
 
 ## CONTRIBUTING
