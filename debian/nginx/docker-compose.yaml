@@ -19,7 +19,7 @@ services:
     image: jcpd/docker-dotclear:latest
     container_name: dotclearphp
     volumes:
-      - dc__app:/var/www/html
+      - dc_app:/var/www/html
     ports:
       - 8080:80
     depends_on:
