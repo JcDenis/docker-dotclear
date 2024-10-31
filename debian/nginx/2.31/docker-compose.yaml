@@ -1,4 +1,4 @@
-# docker-dotclear:3.31-dnf
+# docker-dotclear:2.31-dnf
 services:
   dc_app:
     build:

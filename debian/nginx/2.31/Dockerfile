@@ -1,4 +1,4 @@
-# docker-dotclear:3.31-dnf
+# docker-dotclear:2.31-dnf
 # Debian 12.7 / nginx 1.22.1 / php-fpm 8.3
 FROM php:8.3-fpm
 

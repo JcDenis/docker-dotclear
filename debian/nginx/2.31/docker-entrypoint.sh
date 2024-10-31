@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# docker-dotclear:3.31-dnf
+# docker-dotclear:2.31-dnf
 
 set -e
 
