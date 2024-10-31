@@ -22,7 +22,8 @@ Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/j
 dotclear_version-server_type
 
 * jcpd/docker-dotclear:latest is base on Debian / Nginx / PHP-FPM
-* jcpd/docker-dotclear:dnf is based on  Debian / Nginx / PHP-FPM
+* jcpd/docker-dotclear:x.xx-dnf is based on  Debian / Nginx / PHP-FPM
+* jcpd/docker-dotclear:x.xx-anf is based on  Alpine / Nginx / PHP-FPM
 * ... (next to come)
 
 Exemple of a docker compose file with a mariadb database.
@@ -72,7 +73,18 @@ Before Dotclear 2.32, on first run, Dotclear does installation process, you must
 * MYSQL_USER as database login
 * MYSQL_PASSWORD as database password
 
+Builds should support postgresql and mysql database.
+
 On first run you should wait that container download ans install required version of Dotclear...
+
+## TODO
+
+* Disable upgrade from Dotclear. Should only use upgrade from container restart ?
+* Use auto installation from container environment variables.
+* Add support of Dotclear's DEBUG mode for Dotclear and logs.
+* Add better cache management. From another container or from Dotclear container.
+* Enhance server and php configuration. From x.conf files.
+* Add builds from Alpine and Apache and maybe without FPM.
 
 ## CONTRIBUTING
 
