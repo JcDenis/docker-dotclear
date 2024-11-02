@@ -18,6 +18,12 @@ It is hightly based on work from [darknao](https://github.com/darknao/docker-dot
 * Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear)
 * Dotclear docker sources are avaialable at [Github repository](https://github.com/JcDenis/docker-dotclear)
 
+__Important notes:__
+As of today, current images structure change on every release, 
+do not use these images in production environment.
+One of possible breaking change in futur could be the support of multi-blogs 
+with changed in docker volumes and system path.
+
 ### TAGS
 
 dotclear_version-server_type
