@@ -59,16 +59,29 @@ Exemple of a docker compose file with a mariadb database.
         container_name: dotclearphp
         volumes:
           - dc_app:/var/www/html
+          - dc_plugins:/var/www/html/other_plugins
         ports:
           - 8080:80
         depends_on:
           - dc_db # MYSQL database service
+        environment:
+          # These variables are only used for first install, see inc/config.php, from dotclear 2.32
+          DC_DBDRIVER: mysqlimb4 # MYSQL full UTF-8
+          DC_DBHOST: dc_db # MYSQL database service
+          DC_DBNAME: dotclear_db # MYSQL_DATABASE
+          DC_DBUSER: dotclear_user # MYSQL_USER 
+          DC_DBPASSWORD: dotclear_pwd # MYSQL_PASSWORD 
+          DC_DBPREFIX: dc_ # Database tables prefix
+          DC_ADMINMAILFROM: contact@exemple.com # Dotclear mail from
+          # Optionnal path for third party plugins, must be in /var/www/html
+          DC_PLUGINS_ROOT: /var/www/html/other_plugins
     
     volumes:
       dc_app: # NGINX volume
+      dc_plugins: # plugins volume
       dc_db: # MYSQL volume
 
-* You must replace database USER and PASSWORD by something else.
+* You __must__ replace database USER and PASSWORD by something else.
 
 Then execute 
 
