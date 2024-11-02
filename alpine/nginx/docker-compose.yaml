@@ -16,7 +16,7 @@ services:
 
   # PHP-FPM Service
   dc_app:
-    image: jcpd/docker-dotclear:2.31-dnf
+    image: jcpd/docker-dotclear:2.31-anf
     container_name: dotclearphp
     volumes:
       - dc_app:/var/www/html

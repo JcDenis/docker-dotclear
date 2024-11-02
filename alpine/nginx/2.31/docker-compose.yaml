@@ -1,0 +1,9 @@
+# docker-dotclear:2.31-anf
+
+services:
+  dc_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker-dotclear:2.31-anf
+    container_name: dotclear

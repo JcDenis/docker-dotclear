@@ -22,10 +22,12 @@ It is hightly based on work from [darknao](https://github.com/darknao/docker-dot
 
 dotclear_version-server_type
 
-* jcpd/docker-dotclear:latest is base on stable Debian / Nginx / PHP-FPM
+* jcpd/docker-dotclear:latest is base on stable Alpine / Nginx / PHP-FPM
 * jcpd/docker-dotclear:x.xx-dnf is based on stable Debian / Nginx / PHP-FPM
 * jcpd/docker-dotclear:x.xx-anf is based on stable Alpine / Nginx / PHP-FPM
 * ... (next to come)
+
+### DOCKER
 
 Exemple of a docker compose file with a mariadb database.
 
@@ -78,7 +80,16 @@ Builds should support postgresql and mysql database.
 
 On first run you should wait that container download ans install required version of Dotclear...
 
-## TODO
+### BLOG
+
+These images support Dotclear URL rewriting in PATH INFO mode.
+To configure default blog, go to the administration interface at http://localhost/admin,
+ * left side menu _Blog settings_
+ * panel _Advanced parameters_
+ * set _Blog URL_ to http://localhost/ (with trailing slash)
+ * set _URL scan method_ to 'PATH_INFO'
+
+### TODO
 
 * Disable upgrade from Dotclear. Should only use upgrade from container restart ?
 * or Fix downgrade on container restart when Dotclear has been upgraded from UI.
@@ -89,12 +100,12 @@ On first run you should wait that container download ans install required versio
 * Enhance server and php configuration. From x.conf files.
 * Add builds from Alpine and Apache and maybe without FPM.
 
-## CONTRIBUTING
+### CONTRIBUTING
 
 This image is an open source project. If you'd like to contribute, please read the [CONTRIBUTING file](/CONTRIBUTING.md).
 You can submit a pull request, or feel free to use any other way you'd prefer.
 
-## License
+### LICENSE
 
 Copyright Jean-Christian Paul Denis
 AGPL-v3 <https://www.gnu.org/licenses/agpl-3.0.html>
