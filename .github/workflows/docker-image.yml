@@ -14,5 +14,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file ./alpine/nginx/latest/Dockerfile --tag docker-dotclear:latest
+      name: Build the Docker image
+      with:
+        context: ./alpine/nginx/latest
+      run: docker build . --file Dockerfile --tag docker-dotclear:latest
