@@ -1,8 +1,0 @@
-# docker-dotclear:2.31-dnf
-services:
-  dc_app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: docker-dotclear:2.31-dnf # debian nginx php-fpm
-    container_name: dotclear

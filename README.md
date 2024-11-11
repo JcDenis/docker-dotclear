@@ -18,32 +18,35 @@ It is hightly based on work from [darknao](https://github.com/darknao/docker-dot
 * Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear)
 * Dotclear docker sources are avaialable at [Github repository](https://github.com/JcDenis/docker-dotclear)
 
-__Important notes:__
-As of today, current images structure change on every release, 
-do not use these images in production environment.
-One of possible breaking change in futur could be the support of multi-blogs 
-with changed in docker volumes and system path.
-
 ### TAGS
 
-dotclear_version-server_type
+Docker image tag is based on __Alpine Linux OS, Nginx server and PHP-FPM language__
+It is composed of Dotclear version or release type.
 
-* jcpd/docker-dotclear:latest is base on stable Alpine / Nginx / PHP-FPM
-* jcpd/docker-dotclear:x.xx-dnf is based on stable Debian / Nginx / PHP-FPM
-* jcpd/docker-dotclear:x.xx-anf is based on stable Alpine / Nginx / PHP-FPM
-* ... (next to come)
+* x.x : A given Dotclear version (ex: 2.31.1)
+* latest : The latest stable Dotclear release
+* dev : A Dotclear unstable (nightly) release
+
+To build image from stable canal, from the Dokerfile path, execute :
+
+    docker build -t dotclear:latest --build-arg CANAL=stable .
+
+Or to build image from unstable canal, from the Dokerfile path, execute :
+
+    docker build -t dotclear:dev --build-arg CANAL=unstable .
+
+Builds should support postgresql and mysql database.
 
 ### DOCKER
 
 Exemple of a docker compose file with a mariadb database.
 
     services:
-
       # MYSQL database service
       dc_db:
         image: mariadb:latest
         container_name: dotcleardb
-        restart: always
+        restart: unless-stopped
         command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
         volumes:
           - dc_db:/var/lib/mysql
@@ -57,15 +60,15 @@ Exemple of a docker compose file with a mariadb database.
       dc_app:
         image: jcpd/docker-dotclear:latest
         container_name: dotclearphp
+        restart: unless-stopped
         volumes:
-          - dc_app:/var/www/html
-          - dc_plugins:/var/www/html/other_plugins
+          - dc_app:/var/www/dotclear
         ports:
-          - 8080:80
+          - 80:80
         depends_on:
           - dc_db # MYSQL database service
         environment:
-          # These variables are only used for first install, see inc/config.php, from dotclear 2.32
+          # These variables are only used for first install, see inc/config.php
           DC_DBDRIVER: mysqlimb4 # MYSQL full UTF-8
           DC_DBHOST: dc_db # MYSQL database service
           DC_DBNAME: dotclear_db # MYSQL_DATABASE
@@ -73,51 +76,77 @@ Exemple of a docker compose file with a mariadb database.
           DC_DBPASSWORD: dotclear_pwd # MYSQL_PASSWORD 
           DC_DBPREFIX: dc_ # Database tables prefix
           DC_ADMINMAILFROM: contact@exemple.com # Dotclear mail from
-          # Optionnal path for third party plugins, must be in /var/www/html
-          DC_PLUGINS_ROOT: /var/www/html/other_plugins
     
     volumes:
-      dc_app: # NGINX volume
-      dc_plugins: # plugins volume
-      dc_db: # MYSQL volume
+      dc_app: # NGINX (dotclear) volume
+      dc_db: # MYSQL (database) volume
 
-* You __must__ replace database USER and PASSWORD by something else.
+ * You __MUST__ replace database USER and PASSWORD by something else.
 
 Then execute 
 
     docker-compose up -d
 
-Dotclear is now available on your server host at http://locahost:8080/
-
-Before Dotclear 2.32, on first run, Dotclear does installation process, you must provide values of :
-* MySQl database container service name as database host (here dc_db)
-* MYSQL_DATABASE as database name
-* MYSQL_USER as database login
-* MYSQL_PASSWORD as database password
-
-Builds should support postgresql and mysql database.
-
-On first run you should wait that container download ans install required version of Dotclear...
+Dotclear is now available on your server host at http://locahost/
+On first run Dotclear does its installation process and ask you to create a first user.
+On first run you should wait that container download and install required version of Dotclear,
+this may takes a while...
 
 ### BLOG
 
-These images support Dotclear URL rewriting in PATH INFO mode.
-To configure default blog, go to the administration interface at http://localhost/admin,
+__Standard configuration__
+
+These images use Dotclear URL rewriting in PATH INFO mode.
+By default URL and path should be corrected by a custom plugin automatically.
+Blogs URLs looks like:
+ * http://localhost/default/
+ * http://localhost/blog2/
+ * ...
+Blogs administration is available at http://localhost/admin
+
+When you create a new blog in standard configuration,
+you must use the _blog_id_ with the trailing slash in blog URL setting like http://localhost/blog_id/
+
+__Non standard configuration__
+
+Setup nginx server configuration (see bellow):
+ * adapt _/var/www/dotclear/servers/*.conf_ to your needs
+Then to configure blog:
+ * go to the administration interface at http://my_custom_domain/admin,
  * left side menu _Blog settings_
  * panel _Advanced parameters_
- * set _Blog URL_ to http://localhost/ (with trailing slash)
+ * set _Blog URL_ to http://my_custom_domain/ (with trailing slash)
  * set _URL scan method_ to 'PATH_INFO'
+Then fix public_path and public_url for the blog:
+ * go to the administration interface at http://my_custom_domain/admin,
+ * left side menu _about:config_
+ * panel _system_
+ * set _public_path_ to the real path on system to public directory of the blog
+ * set _public_url_ to the URL of the public directory of the blog
+
+### STRUCTURE
+
+Default root path of this image structure is in __/var/www/dotclear__
+ * _app_ : Dotclear software files
+ * _blogs_ : Blogs public directories
+ * _cache_ : Dotclear template cache
+ * _plugins_ : Third party plugins directory
+ * _servers_ : Nginx servers configurations
+ * _var_ : Dotclear var directory
+
+### UPGRADE
+
+To upgrade Dotclear to next version, just pull latest image and restart the docker container (recommanded)
+or use Dotclear buitin update system.
+
+Reminder: a dedicated dashboard is available at http://localhost/admin/upgrade.php
 
 ### TODO
 
-* Disable upgrade from Dotclear. Should only use upgrade from container restart ?
-* or Fix downgrade on container restart when Dotclear has been upgraded from UI.
-* Use auto installation from container environment variables.
 * Add support of Dotclear's DEBUG mode for Dotclear and logs.
 * Add better cache management. From another container or from Dotclear container.
 * Add mail support.
 * Enhance server and php configuration. From x.conf files.
-* Add builds from Alpine and Apache and maybe without FPM.
 
 ### CONTRIBUTING
 

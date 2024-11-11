@@ -1,9 +1,0 @@
-# docker-dotclear:latest
-
-services:
-  dc_app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: docker-dotclear:latest
-    container_name: dotclear
