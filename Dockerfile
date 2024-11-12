@@ -11,6 +11,10 @@ FROM alpine:latest
 # Set system timezone
 RUN echo "UTC" > /etc/timezone
 
+# Select Dotclear release canal (stable | unstable)
+ARG CANAL stable
+ENV CNL_DOTCLEAR=$CANAL
+
 ##
 # Nginx
 ##
@@ -67,16 +71,12 @@ RUN apk add --no-cache --update \
     ${VER_PHP}-sqlite3
 
 # Copy PHP configuration
-COPY etc/php.ini /etc/${VER_PHP}/php.ini
+COPY etc/${CNL_DOTCLEAR}-php.ini /etc/${VER_PHP}/php.ini
 COPY etc/php-fpm.conf /etc/${VER_PHP}/php-fpm.d/www.conf
 
 ##
 # Dotclear
 ##
-
-# Select Dotclear release canal (stable | unstable)
-ARG CANAL stable
-ENV CNL_DOTCLEAR=$CANAL
 
 # Download latest Dotclear version
 RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
