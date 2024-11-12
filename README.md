@@ -102,6 +102,7 @@ Blogs URLs looks like:
  * http://localhost/default/
  * http://localhost/blog2/
  * ...
+
 Blogs administration is available at http://localhost/admin
 
 When you create a new blog in standard configuration,
@@ -111,12 +112,14 @@ __Non standard configuration__
 
 Setup nginx server configuration (see bellow):
  * adapt _/var/www/dotclear/servers/*.conf_ to your needs
+ 
 Then to configure blog:
  * go to the administration interface at http://my_custom_domain/admin,
  * left side menu _Blog settings_
  * panel _Advanced parameters_
  * set _Blog URL_ to http://my_custom_domain/ (with trailing slash)
  * set _URL scan method_ to 'PATH_INFO'
+
 Then fix public_path and public_url for the blog:
  * go to the administration interface at http://my_custom_domain/admin,
  * left side menu _about:config_

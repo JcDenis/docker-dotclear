@@ -1,4 +1,4 @@
-# docker-dotclear:x.x-anf
+# docker-dotclear:*
 # docker-dotclear Dockerfile
 
 ##

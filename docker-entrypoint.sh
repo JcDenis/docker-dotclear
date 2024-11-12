@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# docker-dotclear:x.x-anf
+# docker-dotclear:*
 # Container starting script
 
 set -e
