@@ -1,6 +1,9 @@
-services:
+# jcpd/docker-dotclear:latest
+volumes:
+  dc_app:
+  dc_db:
 
-  # MYSQL database service
+services:
   dc_db:
     image: mariadb:latest
     container_name: dotcleardb
@@ -14,28 +17,21 @@ services:
       MYSQL_USER: dotclear_user
       MYSQL_PASSWORD: dotclear_pwd
 
-  # Dotclear server service
   dc_app:
     image: jcpd/docker-dotclear:latest
     container_name: dotclearphp
     restart: unless-stopped
     volumes:
-      #- dc_app:/var/www/dotclear # docker volume or
-      - ./dotclear:/var/www/dotclear # system path
+      - dc_app:/var/www/dotclear
     ports:
       - 80:80
     depends_on:
-      - dc_db # MYSQL database service
+      - dc_db
     environment:
-      # These variables are only used for first install, see inc/config.php
-      DC_DBDRIVER: mysqlimb4 # MYSQL full UTF-8
-      DC_DBHOST: dc_db # MYSQL database service
-      DC_DBNAME: dotclear_db # MYSQL_DATABASE
-      DC_DBUSER: dotclear_user # MYSQL_USER 
-      DC_DBPASSWORD: dotclear_pwd # MYSQL_PASSWORD 
-      DC_DBPREFIX: dc_ # Database tables prefix
-      DC_ADMINMAILFROM: contact@exemple.com # Dotclear mail from
-
-volumes:
-#  dc_app: # Dotclear volume
-  dc_db: # MYSQL volume
+      DC_DBDRIVER: mysqlimb4
+      DC_DBHOST: dc_db
+      DC_DBNAME: dotclear_db
+      DC_DBUSER: dotclear_user
+      DC_DBPASSWORD: dotclear_pwd
+      DC_DBPREFIX: dc_
+      DC_ADMINMAILFROM: contact@exemple.com
