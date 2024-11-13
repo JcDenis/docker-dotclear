@@ -20,26 +20,29 @@ It is hightly based on work from [darknao](https://github.com/darknao/docker-dot
 
 ### TAGS
 
-Docker image tag is based on __Alpine Linux OS, Nginx server and PHP-FPM language__
-It is composed of Dotclear version or release type.
+Docker image tag is based on __Alpine Linux OS, Nginx server and PHP-FPM language__. 
+It is composed of Dotclear version or release type:
 
 * x.x : A given Dotclear version (ex: 2.31.1)
 * latest : The latest stable Dotclear release
 * dev : A Dotclear unstable (nightly) release
 
-To build image from stable canal, from the Dokerfile path, execute :
+To build image from stable canal, from the Dokerfile path, execute:
 
     docker build -t dotclear:latest --build-arg CANAL=stable .
 
-Or to build image from unstable canal, from the Dokerfile path, execute :
+Or to build image from unstable canal, from the Dokerfile path, execute:
 
     docker build -t dotclear:dev --build-arg CANAL=unstable .
 
-Builds should support postgresql and mysql database.
+Builds should support:
+
+* postgresql and mysql database
+* linux/386 and linux/amd64 and linux/arm/V6 plateforms
 
 ### DOCKER
 
-Exemple of a docker compose file with a mariadb database.
+Exemple of a docker compose file with a mariadb database:
 
     services:
       # MYSQL database service
@@ -83,7 +86,7 @@ Exemple of a docker compose file with a mariadb database.
 
  * You __MUST__ replace database USER and PASSWORD by something else.
 
-Then execute 
+Then execute:
 
     docker-compose up -d
 
@@ -99,6 +102,7 @@ __Standard configuration__
 These images use Dotclear URL rewriting in PATH INFO mode.
 By default URL and path should be corrected by a custom plugin automatically.
 Blogs URLs looks like:
+
  * http://localhost/default/
  * http://localhost/blog2/
  * ...
@@ -114,6 +118,7 @@ Setup nginx server configuration (see bellow):
  * adapt _/var/www/dotclear/servers/*.conf_ to your needs
  
 Then to configure blog:
+
  * go to the administration interface at http://my_custom_domain/admin,
  * left side menu _Blog settings_
  * panel _Advanced parameters_
@@ -121,6 +126,7 @@ Then to configure blog:
  * set _URL scan method_ to 'PATH_INFO'
 
 Then fix public_path and public_url for the blog:
+
  * go to the administration interface at http://my_custom_domain/admin,
  * left side menu _about:config_
  * panel _system_
@@ -129,7 +135,8 @@ Then fix public_path and public_url for the blog:
 
 ### STRUCTURE
 
-Default root path of this image structure is in __/var/www/dotclear__
+Default root path of this image structure is in __/var/www/dotclear__ with sub folders:
+
  * _app_ : Dotclear software files
  * _blogs_ : Blogs public directories
  * _cache_ : Dotclear template cache
@@ -146,7 +153,6 @@ Reminder: a dedicated dashboard is available at http://localhost/admin/upgrade.p
 
 ### TODO
 
-* Add support of Dotclear's DEBUG mode for Dotclear and logs.
 * Add better cache management. From another container or from Dotclear container.
 * Add mail support.
 * Enhance server and php configuration. From x.conf files.
