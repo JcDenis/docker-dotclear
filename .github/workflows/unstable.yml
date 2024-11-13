@@ -36,4 +36,4 @@ jobs:
           sbom: true
           push: true
           tags: ${{ env.IMAGE_NAME }}
-          build-args: CANAL=${{ env.DOTCLEAR }}
+          build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
