@@ -1,7 +1,6 @@
 name: Publish Dotclear unstable image to Docker Hub
 
 on:
-  push:
   schedule:
   - cron: '0 3 * * *'
 
