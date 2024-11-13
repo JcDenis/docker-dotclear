@@ -1,13 +1,13 @@
-name: Publish Dotclear unstable image to Docker Hub
+name: Publish Dotclear stable image to Docker Hub
 
 on:
   push:
-  schedule:
-  - cron: '0 3 * * *'
+    tags:        
+      - '*'
 
 env:
-  IMAGE_NAME: jcpd/docker-dotclear:dev
-  DOTCLEAR_CANAL: unstable
+  IMAGE_NAME: jcpd/docker-dotclear
+  DOTCLEAR_CANAL: stable
 
 jobs:
   push_to_docker_hub:
@@ -31,13 +31,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and push image
+      - name: Build and push images
         uses: docker/build-push-action@v6
         with:
           context: .
           sbom: true
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+            ${{ env.IMAGE_NAME }}:latest
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
 
@@ -51,6 +53,6 @@ jobs:
           format: markdown
           message: |
             Image successfully generated.
-            __Repository:__ *${{github.repository}}
+            __Repository:__ ${{github.repository}}
             __Image:__ ${{ env.IMAGE_NAME }}
             __Canal:__ ${{ env.DOTCLEAR_CANAL }}

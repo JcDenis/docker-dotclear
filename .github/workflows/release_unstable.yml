@@ -50,6 +50,6 @@ jobs:
           format: markdown
           message: |
             Image successfully generated.
-            __Repository:__ *${{github.repository}}
+            __Repository:__ ${{github.repository}}
             __Image:__ ${{ env.IMAGE_NAME }}
             __Canal:__ ${{ env.DOTCLEAR_CANAL }}
