@@ -29,22 +29,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: |
-            jcpd/docker-dotclear
-            ghcr.io/${{ github.repository }}
-
       - name: Build and push Docker images
         id: push
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}:test
-          labels: ${{ steps.meta.outputs.labels }}:test
+          tags: |
+            jcpd/docker-dotclear:test
+            ghcr.io/docker-dotclear:test
+          labels: docker-dotclear:test
           build-args: CANAL=unstable
 
       - name: Generate artifact attestation
