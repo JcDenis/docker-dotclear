@@ -3,6 +3,7 @@ name: Publish Dotclear unstable image to Docker Hub
 on:
   schedule:
   - cron: '0 3 * * *'
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: jcpd/docker-dotclear:dev
