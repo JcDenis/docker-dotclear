@@ -1,7 +1,7 @@
 # README
 
-![Stable image](https://github.com/github/docs/actions/workflows/release_stable.yml/badge.svg) 
-![Unstable image](https://github.com/github/docs/actions/workflows/release_unstable.yml/badge.svg) 
+![Stable image](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_stable.yml/badge.svg) 
+![Unstable image](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_unstable.yml/badge.svg) 
 
 ## THE SHORT WAY
 
