@@ -130,6 +130,10 @@ this may takes a while...
           DC_DBNAME: \var\www\dotclear\sqlite.db
           DC_ADMINMAILFROM: contact@exemple.com
 
+or with a simple docker command:
+
+    docker run -d --name dotclear -p 80:80 -v dotclear:/var/www/dotclear -e DC_DBDRIVER=sqlite -e DC_DBNAME=/var/www/dotclear/sqlite.db -e DC_ADMINMAILFROM=contact@exemple.com jcpd/docker-dotclear:latest
+
 SQLite database will be stored in folder \var\www\dotclear
 
 ### BLOG
