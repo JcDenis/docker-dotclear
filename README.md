@@ -1,6 +1,7 @@
 # README
 
-![Stable image version](https://img.shields.io/docker/v/jcpd/docker-dotclear)
+![Stable image version](https://img.shields.io/github/v/release/JcDenis/docker-dotclear)
+![Docker image size](https://img.shields.io/docker/image-size/jcpd/docker-dotclear/latest)
 ![Stable image downloads](https://img.shields.io/docker/pulls/jcpd/docker-dotclear)
 
 ![Stable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_stable.yml/badge.svg) 
