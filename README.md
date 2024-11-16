@@ -1,7 +1,10 @@
 # README
 
-![Stable image](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_stable.yml/badge.svg) 
-![Unstable image](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_unstable.yml/badge.svg) 
+![Stable image version](https://img.shields.io/docker/v/jcpd/docker-dotclear)
+![Stable image downloads](https://img.shields.io/docker/pulls/jcpd/docker-dotclear)
+
+![Stable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_stable.yml/badge.svg) 
+![Unstable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_unstable.yml/badge.svg) 
 
 ## THE SHORT WAY
 
