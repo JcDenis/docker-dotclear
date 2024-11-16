@@ -49,8 +49,4 @@ jobs:
           to: ${{ secrets.TELEGRAM_ID }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
-          message: |
-            Image successfully generated.
-            __Repository:__ ${{github.repository}}
-            __Image:__ ${{ env.DOTCLEAR_IMAGE }}
-            __Canal:__ ${{ env.DOTCLEAR_CANAL }}
+          message: Image __${{ env.DOTCLEAR_IMAGE }}:dev__ successfully generated.

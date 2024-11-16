@@ -96,3 +96,13 @@ jobs:
             ${{ env.DOTCLEAR_IMAGE }}:latest
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
+
+      - name: Send Telegram Message Ok
+        uses: appleboy/telegram-action@master
+        env:
+          GITHUB_CONTEXT: ${{toJSON(github)}}
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: Images __${{ env.DOTCLEAR_IMAGE }}:latest__ and  __${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_release.outputs.version }}__ successfully generated.
