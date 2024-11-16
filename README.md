@@ -61,7 +61,7 @@ Builds should support:
 
 ### DOCKER
 
-Exemple of a docker compose file with a mariadb database:
+**Exemple of a docker compose file with a mariadb database:**
 
     services:
       # MYSQL database service
@@ -113,6 +113,24 @@ Dotclear is now available on your server host at http://locahost/
 On first run Dotclear does its installation process and ask you to create a first user.
 On first run you should wait that container download and install required version of Dotclear,
 this may takes a while...
+
+**Another exemple with an SQLite database and a single container:**
+
+    services:
+      dotclear:
+        image: jcpd/docker-dotclear:latest
+        container_name: dotclear
+        restart: unless-stopped
+        volumes:
+          - ./dotclear:/var/www/dotclear
+        ports:
+          - 80:80
+        environment:
+          DC_DBDRIVER: sqlite
+          DC_DBNAME: \var\www\dotclear\sqlite.db
+          DC_ADMINMAILFROM: contact@exemple.com
+
+SQLite database will be stored in folder \var\www\dotclear
 
 ### BLOG
 

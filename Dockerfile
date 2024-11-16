@@ -68,7 +68,7 @@ RUN apk add --no-cache --update \
     ${VER_PHP}-xml \
     ${VER_PHP}-simplexml \
     ${VER_PHP}-zip \
-    ${VER_PHP}-sqlite3
+    ${VER_PHP}-pdo_sqlite
 
 # Copy PHP configuration
 COPY etc/${CNL_DOTCLEAR}-php.ini /etc/${VER_PHP}/php.ini
