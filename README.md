@@ -5,6 +5,7 @@
 ![Stable image downloads](https://img.shields.io/docker/pulls/jcpd/docker-dotclear)
 
 ![Stable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_stable.yml/badge.svg) 
+![Testing image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_testing.yml/badge.svg) 
 ![Unstable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_unstable.yml/badge.svg) 
 
 ## THE SHORT WAY
@@ -38,11 +39,16 @@ It is composed of Dotclear version or release type:
 
 * x.x : A given Dotclear version (ex: 2.31.1)
 * latest : The latest stable Dotclear release
+* testing: The latest dev of Dotclear stable branch
 * dev : A Dotclear unstable (nightly) release
 
 To build image from stable canal, from the Dokerfile path, execute:
 
     docker build -t dotclear:latest --build-arg CANAL=stable .
+
+Or to build image from testing canal, from the Dokerfile path, execute:
+
+    docker build -t dotclear:testing --build-arg CANAL=testing .
 
 Or to build image from unstable canal, from the Dokerfile path, execute:
 
