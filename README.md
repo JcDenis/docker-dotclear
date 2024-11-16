@@ -1,5 +1,14 @@
 # README
 
+![Stable image](https://github.com/github/docs/actions/workflows/release_stable.yml/badge.svg) 
+![Unstable image](https://github.com/github/docs/actions/workflows/release_unstable.yml/badge.svg) 
+
+## THE SHORT WAY
+
+In your futur server, with Docker compose installed, execute:
+
+    curl -fsSL -o docker-compose.yaml https://raw.githubusercontent.com/JcDenis/docker-dotclear/refs/heads/master/docker-compose.yaml && docker-compose up -d
+
 ## WHAT IS DOTCLEAR
 
 Dotclear is an open-source web publishing software.
