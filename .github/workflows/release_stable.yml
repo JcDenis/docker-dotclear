@@ -17,6 +17,7 @@ env:
 
 jobs:
   check_release:
+    name: Check and compare official Dotclear version
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,6 +46,7 @@ jobs:
           release-tag: ${{ steps.dotclear.outputs.version }}
 
   do_release:
+    name: Create repository release according to Dotclear version
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,6 +63,7 @@ jobs:
           prerelease: false
 
   do_image:
+    name: Build latest and versionned images and push to Docker hub
     runs-on: ubuntu-latest
     permissions:
       packages: write

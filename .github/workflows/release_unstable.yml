@@ -10,7 +10,8 @@ env:
   DOTCLEAR_CANAL: unstable
 
 jobs:
-  push_to_docker_hub:
+  do_image:
+    name: Build dev image and push to Docker hub
     runs-on: ubuntu-latest
     permissions:
       packages: write
