@@ -1,22 +1,74 @@
-name: Publish Dotclear stable image to Docker Hub
+name: Build and push stable image
 
 on:
-  release:
-    types: [published]
+  schedule:
+  - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      rebuild:
+        description: 'rebuild'
+        type: boolean
+        required: true
 
 env:
-  IMAGE_NAME: jcpd/docker-dotclear
+  DOTCLEAR_IMAGE: jcpd/docker-dotclear
   DOTCLEAR_CANAL: stable
+  DOTCLEAR_URL: https://download.dotclear.org/versions.xml
 
 jobs:
-  push_to_docker_hub:
-    name: Push Docker image to registry
+  check_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.dotclear.outputs.version }}
+      exists: ${{ steps.repository.outputs.release-exists }}
+    steps:
+      - name: Install required packages
+        run: curl -sSL https://bit.ly/install-xq | sudo bash
+
+      - name: Download and parse last version
+        id: dotclear
+        run: |
+          curl -fsSL -o versions.xml ${{ env.DOTCLEAR_URL }}
+          echo version=$(cat versions.xml | xq -x "//release[@name='${{ env.DOTCLEAR_CANAL }}']/@version") >> $GITHUB_OUTPUT
+
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check repository releases
+        id: repository
+        uses: insightsengineering/release-existence-action@v1.0.0
+        with:
+          release-tag: ${{ steps.dotclear.outputs.version }}
+
+  do_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: check_release
+    if: needs.check_release.outputs.exists == 'false'
+    steps:
+      - name: Create repository release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check_release.outputs.version }}
+          name: ${{ needs.check_release.outputs.version }}
+          draft: false
+          prerelease: false
+
+  do_image:
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
       attestations: write
       id-token: write
+    needs: check_release
+    if: (needs.check_release.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true')
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -37,22 +89,7 @@ jobs:
           sbom: true
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.event.release.name }}
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_release.outputs.version }}
+            ${{ env.DOTCLEAR_IMAGE }}:latest
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
-
-      - name: Send Telegram Message Ok
-        uses: appleboy/telegram-action@master
-        env:
-          GITHUB_CONTEXT: ${{toJSON(github)}}
-        with:
-          to: ${{ secrets.TELEGRAM_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: |
-            Image successfully generated
-            __Repository:__ ${{github.repository}}
-            __Release:__ ${{ github.event.release.name }}
-            __Image:__ ${{ env.IMAGE_NAME }}
-            __Canal:__ ${{ env.DOTCLEAR_CANAL }}
