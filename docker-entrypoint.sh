@@ -38,12 +38,12 @@ else
 fi
 
 # DEBUG mode for unstable release
-if [ "$CNL_DOTCLEAR" == "unstable" ]; then
-	echo >&2 "Enabling Dotclear DEBUG mode"
-	sed -i -e "s/ \/\*== DC_DEBUG ==/ \/\/\*== DC_DEBUG ==/g" /var/www/dotclear/app/src/Config.php
-else
+if [ "$CNL_DOTCLEAR" == "stable" ]; then
 	echo >&2 "Disabling Dotclear DEBUG mode"
 	sed -i -e "s/ \/\/\*== DC_DEBUG ==/ \/\*== DC_DEBUG ==/g" /var/www/dotclear/app/src/Config.php
+else
+	echo >&2 "Enabling Dotclear DEBUG mode"
+	sed -i -e "s/ \/\*== DC_DEBUG ==/ \/\/\*== DC_DEBUG ==/g" /var/www/dotclear/app/src/Config.php
 fi
 
 # Fix www permissions
