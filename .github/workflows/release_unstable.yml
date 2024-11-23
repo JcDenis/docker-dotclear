@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOTCLEAR_IMAGE: jcpd/docker-dotclear
+  DOTCLEAR_IMAGE: docker-dotclear
   DOTCLEAR_CANAL: unstable
   DOCKER_NAMESPACE: jcpd
 
@@ -47,7 +47,7 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:dev
-            ghcr.io/${{ github.actor }}/${{ env.DOTCLEAR_IMAGE }}:dev
+            ghcr.io/${{ github.repository }}:dev
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
 
