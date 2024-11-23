@@ -42,6 +42,12 @@ It is composed of Dotclear version or release type:
 * testing: The latest dev of Dotclear stable branch
 * dev : A Dotclear unstable (nightly) release
 
+### Builds
+
+Clone this repository:
+
+    git clone https://github.com/JcDenis/docker-dotclear.git
+
 To build image from stable canal, from the Dokerfile path, execute:
 
     docker build -t dotclear:latest --build-arg CANAL=stable .
@@ -56,8 +62,9 @@ Or to build image from unstable canal, from the Dokerfile path, execute:
 
 Builds should support:
 
-* postgresql and mysql database
+* postgresql and mysql and sqlite database
 * linux/386 and linux/amd64 and linux/arm/V6 plateforms
+* docker container healthcheck
 
 ### DOCKER
 
@@ -77,6 +84,12 @@ Builds should support:
           MYSQL_DATABASE: dotclear_db
           MYSQL_USER: dotclear_user
           MYSQL_PASSWORD: dotclear_pwd
+        healthcheck:
+          test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+          start_period: 10s
+          interval: 10s
+          timeout: 5s
+          retries: 3
     
       # PHP-FPM Service
       dc_app:
@@ -88,7 +101,8 @@ Builds should support:
         ports:
           - 80:80
         depends_on:
-          - dc_db # MYSQL database service
+          dc_db: # MYSQL database service
+            condition: service_healthy # Waiting for database ready
         environment:
           # These variables are only used for first install, see inc/config.php
           DC_DBDRIVER: mysqlimb4 # MYSQL full UTF-8
@@ -138,7 +152,7 @@ SQLite database will be stored in folder \var\www\dotclear
 
 ### BLOG
 
-__Standard configuration__
+__Standard configuration by subfolders__
 
 These images use Dotclear URL rewriting in PATH INFO mode.
 By default URL and path should be corrected by a custom plugin automatically.
@@ -150,12 +164,28 @@ Blogs URLs looks like:
 
 Blogs administration is available at http://localhost/admin
 
-When you create a new blog in standard configuration,
+When you create a new blog in this configuration,
 you must use the _blog_id_ with the trailing slash in blog URL setting like http://localhost/blog_id/
+
+__Standard configuration by subdomains__
+
+These images use Dotclear URL rewriting in PATH INFO mode.
+By default URL and path should be corrected by a custom plugin automatically.
+Blogs URLs looks like:
+
+ * http://default.domain.tld/
+ * http://blog2.domain.tld/
+ * ...
+
+Blogs administration is available at http://xxx.domain.tld/admin
+
+When you create a new blog in this configuration,
+you must use the _blog_id_ as subdomain in blog URL setting like http://blog_id.domain.tld/
 
 __Non standard configuration__
 
 Setup nginx server configuration (see bellow):
+
  * adapt _/var/www/dotclear/servers/*.conf_ to your needs
  
 Then to configure blog:
@@ -178,25 +208,24 @@ Then fix public_path and public_url for the blog:
 
 Default root path of this image structure is in __/var/www/dotclear__ with sub folders:
 
- * _app_ : Dotclear software files
+ * _app_ : Dotclear application files
  * _blogs_ : Blogs public directories
  * _cache_ : Dotclear template cache
  * _plugins_ : Third party plugins directory
  * _servers_ : Nginx servers configurations
+ * _themes_ : Dotclear themes directory
  * _var_ : Dotclear var directory
 
 ### UPGRADE
 
-To upgrade Dotclear to next version, just pull latest image and restart the docker container (recommanded)
-or use Dotclear buitin update system.
-
-Reminder: a dedicated dashboard is available at http://localhost/admin/upgrade.php
+To upgrade Dotclear to next version,
+it is recommanded to pull latest image and restart the docker container
+or use Dotclear buitin update system but themes wiil not be updated.
 
 ### TODO
 
 * Add better cache management. From another container or from Dotclear container.
 * Add mail support.
-* Enhance server and php configuration. From x.conf files.
 
 ### CONTRIBUTING
 
