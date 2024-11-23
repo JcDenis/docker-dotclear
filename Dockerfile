@@ -36,7 +36,8 @@ RUN chown -R www:www /var/lib/nginx /var/www
 
 # Copy nginx configuration
 COPY etc/nginx.conf /etc/nginx/nginx.conf
-COPY etc/snippets_blogs.conf /etc/nginx/snippets/snippets_blogs.conf
+COPY etc/snippets_subfolder.conf /etc/nginx/snippets/snippets_subfolder.conf
+COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
 ##
