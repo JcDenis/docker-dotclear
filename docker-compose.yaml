@@ -16,6 +16,12 @@ services:
       MYSQL_DATABASE: dotclear_db
       MYSQL_USER: dotclear_user
       MYSQL_PASSWORD: dotclear_pwd
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   dc_app:
     image: jcpd/docker-dotclear:latest
@@ -26,7 +32,8 @@ services:
     ports:
       - 80:80
     depends_on:
-      - dc_db
+      dc_db: # MYSQL database service
+        condition: service_healthy # Waiting for database ready
     environment:
       DC_DBDRIVER: mysqlimb4
       DC_DBHOST: dc_db
