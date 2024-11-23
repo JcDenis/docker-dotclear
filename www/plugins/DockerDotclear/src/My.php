@@ -22,5 +22,14 @@ class My extends MyPlugin
      */
     public const DOCKER_DOTCLEAR_PUBLIC_ROOT = '/var/www/dotclear/blogs';
 
+    /**
+     * Blogs default themes root path.
+     *
+     * Themes are common to all blogs.
+     *
+     * @var     string  DOCKER_DOTCLEAR_THEMES_ROOT
+     */
+    public const DOCKER_DOTCLEAR_THEMES_ROOT = '/var/www/dotclear/themes';
+
     // Use default permissions
 }

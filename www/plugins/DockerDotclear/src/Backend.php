@@ -30,12 +30,14 @@ class Backend extends Process
             return false;
         }
 
-        # Fix blog public path on blog creation
+        # Fix blog paths on blog creation
         App::behavior()->addBehaviors([
             'adminAfterBlogCreate' => function (Cursor $cur, string $blog_id, BlogSettingsInterface $blog_settings) {
                 Files::makeDir(My::settings()->get('public_root') . '/' . $blog_id, true);
                 $blog_settings->system->put('public_path', My::settings()->get('public_root') . '/' . $blog_id);
-                $blog_settings->system->put('public_url', '/' . $blog_id . '/public');
+                $blog_settings->system->put('public_url', (str_ends_with($cur->blog_url, $cur->blog_id . '/') ? '/' . $blog_id : '') . '/public');
+                $blog_settings->system->put('themes_path', My::settings()->get('themes_root'));
+                $blog_settings->system->put('themes_url', '/themes');
             },
         ]);
 

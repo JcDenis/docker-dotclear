@@ -33,15 +33,18 @@ class Install extends Process
         try {
             # Set module setting
             My::settings()->put('public_root', My::DOCKER_DOTCLEAR_PUBLIC_ROOT, 'string', 'Blogs public root path', false, true);
+            My::settings()->put('themes_root', My::DOCKER_DOTCLEAR_THEMES_ROOT, 'string', 'Blogs themes root path', false, true);
 
-            # On first insall, update default blog parameters
+            # On first install, update default blog parameters
             if (App::version()->getVersion(My::id()) === '') {
                 $blog_id = 'default';
 
-                # Fix default blog public path
+                # Fix default blog paths
                 $blog_settings = App::blogSettings()->createFromBlog($blog_id);
                 $blog_settings->get('system')->put('public_path', My::DOCKER_DOTCLEAR_PUBLIC_ROOT . '/' . $blog_id);
                 $blog_settings->get('system')->put('public_url', '/' . $blog_id . '/public');
+                $blog_settings->get('system')->put('themes_path', My::DOCKER_DOTCLEAR_THEMES_ROOT);
+                $blog_settings->get('system')->put('themes_url', '/themes');
                 $blog_settings->get('system')->put('url_scan', 'path_info');
 
                 # Fix default blog URL
