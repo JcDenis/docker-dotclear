@@ -39,6 +39,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: set lower case owner name
+        run: |
+          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
+        env:
+          REPO: '${{ github.repository }}'
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -47,7 +53,7 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:dev
-            ghcr.io/${{ github.repository }}:dev
+            ghcr.io/${{ env.GITHUB_REPOSITORY }}:dev
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
 
