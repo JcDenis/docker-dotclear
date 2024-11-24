@@ -41,7 +41,7 @@ fi
 
 # Update Docker structure
 echo >&2 "Updating Dotclear common themes..."
-cp -Ru /var/www/dotclear/app/themes /var/www/dotclear/themes
+cp -Ru /var/www/dotclear/app/themes/* /var/www/dotclear/themes
 
 # DEBUG mode for non stable releases
 if [ "$CNL_DOTCLEAR" == "stable" ]; then
