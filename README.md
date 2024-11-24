@@ -63,7 +63,7 @@ Or to build image from unstable canal, from the Dokerfile path, execute:
 Builds should support:
 
 * postgresql and mysql and sqlite database
-* linux/386 and linux/amd64 and linux/arm/V6 plateforms
+* linux/386,linux/amd64,linux/arm64,linux/arm/V7 plateforms
 * docker container healthcheck
 
 ### DOCKER

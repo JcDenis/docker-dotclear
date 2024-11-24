@@ -55,7 +55,9 @@ jobs:
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:dev
             ghcr.io/${{ env.GITHUB_REPOSITORY }}:dev
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
-          platforms: linux/386,linux/amd64,linux/arm/V6
+          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/V7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Send Telegram Message Ok
         uses: appleboy/telegram-action@master

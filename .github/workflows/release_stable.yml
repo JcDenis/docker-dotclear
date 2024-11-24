@@ -111,7 +111,9 @@ jobs:
             ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ needs.check_release.outputs.version }}
             ghcr.io/${{ env.GITHUB_REPOSITORY }}:latest
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
-          platforms: linux/386,linux/amd64,linux/arm/V6
+          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/V7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Send Telegram Message Ok
         uses: appleboy/telegram-action@master
