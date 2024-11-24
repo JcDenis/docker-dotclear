@@ -50,7 +50,7 @@ COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 ##
 
 # Try to bypass Alpine Linux iconv bug
-RUN apk add --no-cache  gnu-libiconv
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community/ gnu-libiconv=1.15-r2
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
 # Use PHP 8.3 release
