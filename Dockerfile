@@ -15,6 +15,11 @@ RUN echo "UTC" > /etc/timezone
 ARG CANAL stable
 ENV CNL_DOTCLEAR=$CANAL
 
+# Image label
+LABEL org.opencontainers.image.source=https://github.com/JcDenis/docker-dotclear
+LABEL org.opencontainers.image.description="Dotclear docker image $CNL_DOTCLEAR"
+LABEL org.opencontainers.image.licenses=AGPL-3.0
+
 ##
 # Nginx
 ##
