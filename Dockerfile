@@ -79,6 +79,7 @@ RUN apk add --no-cache --update \
     ${VER_PHP}-xml \
     ${VER_PHP}-simplexml \
     ${VER_PHP}-zip \
+    ${VER_PHP}-pdo_pgsql \
     ${VER_PHP}-pdo_sqlite
 
 # Copy PHP configuration
