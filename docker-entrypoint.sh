@@ -35,10 +35,10 @@ if ! [ -e index.php -a -e src/App.php ]; then
 	tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
 	echo >&2 "Complete! Dotclear has been successfully copied to $(pwd)"
 else
-	echo >&2 "Dotclear found in $(pwd), checking upgrade..."
 	# Check if Dotclear needs upgrade
 	COMPARE_VOLUME=$(sed -n "${COMPARE_HAYSTACK}" release.json)
 	VERSION_VOLUME=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
+	echo >&2 "Dotclear ${VERSION_VOLUME} found in $(pwd), checking upgrade..."
 	if [ $(version $COMPARE_IMAGE) -gt $(version $COMPARE_VOLUME) ]; then
 		echo >&2 "Upgrading Dotclear files from ${VERSION_VOLUME} to ${VERSION_IMAGE}, please wait..."
 		tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
@@ -72,11 +72,12 @@ echo >&2 "Setting up permissions..."
 chown -R www:www /var/www/dotclear
 
 # Print summary to docker logs
+VERSION_INSTALLED=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
 echo >&2 "| Summary: "
 echo >&2 "| Alpine $(cat /etc/alpine-release)"
 echo >&2 "| Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
 echo >&2 "| PHP $(php -r "echo PHP_VERSION;")"
-echo >&2 "| Dotclear ${VERSION_IMAGE}"
+echo >&2 "| Dotclear ${VERSION_INSTALLED}"
 
 # Start web server
 php-fpm83 -D # FPM must start first in daemon mode
