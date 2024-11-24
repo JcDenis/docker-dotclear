@@ -29,7 +29,7 @@ tool allowing anyone to publish on the web, regardless of their technical skills
 This repository contains all features to build or run Dotclear on a Docker environment.
 It is hightly based on work from [darknao](https://github.com/darknao/docker-dotclear).
 
-* Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear)
+* Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear) or [Github registry](https://github.com/JcDenis?tab=packages&repo_name=docker-dotclear)
 * Dotclear docker sources are avaialable at [Github repository](https://github.com/JcDenis/docker-dotclear)
 
 ### TAGS
@@ -42,7 +42,7 @@ It is composed of Dotclear version or release type:
 * testing: The latest dev of Dotclear stable branch
 * dev : A Dotclear unstable (nightly) release
 
-### Builds
+### BUILDS
 
 Clone this repository:
 

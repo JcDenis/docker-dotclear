@@ -11,9 +11,10 @@ on:
         required: true
 
 env:
-  DOTCLEAR_IMAGE: jcpd/docker-dotclear
+  DOTCLEAR_IMAGE: docker-dotclear
   DOTCLEAR_CANAL: stable
   DOTCLEAR_URL: https://download.dotclear.org/versions.xml
+  DOCKER_NAMESPACE: jcpd
 
 jobs:
   check_release:
@@ -63,7 +64,7 @@ jobs:
           prerelease: false
 
   do_image:
-    name: Build latest and versionned images and push to Docker hub
+    name: Build and push latest and versionned images
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -85,6 +86,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Log in to Github registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: set lower case github repository
+        run: |
+          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
+        env:
+          REPO: '${{ github.repository }}'
+
       - name: Build and push images
         uses: docker/build-push-action@v6
         with:
@@ -92,8 +106,10 @@ jobs:
           sbom: true
           push: true
           tags: |
-            ${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_release.outputs.version }}
-            ${{ env.DOTCLEAR_IMAGE }}:latest
+            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_release.outputs.version }}
+            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:latest
+            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ needs.check_release.outputs.version }}
+            ghcr.io/${{ env.GITHUB_REPOSITORY }}:latest
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
 

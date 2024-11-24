@@ -6,12 +6,13 @@ on:
   workflow_dispatch:
 
 env:
-  DOTCLEAR_IMAGE: jcpd/docker-dotclear
+  DOTCLEAR_IMAGE: docker-dotclear
   DOTCLEAR_CANAL: testing
+  DOCKER_NAMESPACE: jcpd
 
 jobs:
   do_image:
-    name: Build testing image and push to Docker hub
+    name: Build and push testing image
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -31,13 +32,28 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Log in to Github registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: set lower case github repository
+        run: |
+          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
+        env:
+          REPO: '${{ github.repository }}'
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           sbom: true
           push: true
-          tags: ${{ env.DOTCLEAR_IMAGE }}:${{ env.DOTCLEAR_CANAL }}
+          tags: |
+            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ env.DOTCLEAR_CANAL }}
+            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ env.DOTCLEAR_CANAL }}
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm/V6
 
