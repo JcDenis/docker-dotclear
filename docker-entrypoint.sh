@@ -6,7 +6,15 @@
 set -e
 
 # Read image version
-export VER_DOTCLEAR=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" /usr/src/dotclear/release.json)
+if [ "$CNL_DOTCLEAR" == "stable" ]; then
+	# stable = x.xx.x => x.xx.x
+	export COMPARE_HAYSTACK="s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p"
+else
+	# testing : x.xx.x-pxxxxxxxx.xxxx, unstable : x.xx.x-dev-rxxxxxxxx.xxxx => xxxxxxxx.xxxx.0
+	export COMPARE_HAYSTACK="s/^\s*\"release_version\":\s*\"\(.*\)\(-p\|-r\)\(.*\)\",/\3.0/p"
+fi
+export COMPARE_IMAGE=$(sed -n "${COMPARE_HAYSTACK}" /usr/src/dotclear/release.json)
+export VERSION_IMAGE=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" /usr/src/dotclear/release.json)
 
 # Simple versions comparison function that works with Dotclear stable versioning
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
@@ -29,13 +37,14 @@ if ! [ -e index.php -a -e src/App.php ]; then
 else
 	echo >&2 "Dotclear found in $(pwd), checking upgrade..."
 	# Check if Dotclear needs upgrade
-	VER_CURRENT=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
-	if [ $(version $VER_DOTCLEAR) -gt $(version $VER_CURRENT) ]; then
-		echo >&2 "Upgrading Dotclear files from ${VER_CURRENT} to ${VER_DOTCLEAR}, please wait..."
+	COMPARE_VOLUME=$(sed -n "${COMPARE_HAYSTACK}" release.json)
+	VERSION_VOLUME=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
+	if [ $(version $COMPARE_IMAGE) -gt $(version $COMPARE_VOLUME) ]; then
+		echo >&2 "Upgrading Dotclear files from ${VERSION_VOLUME} to ${VERSION_IMAGE}, please wait..."
 		tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
-		echo >&2 "Complete! Dotclear files have been successfully upgraded to ${VER_DOTCLEAR}"
+		echo >&2 "Complete! Dotclear files have been successfully upgraded to ${VERSION_IMAGE}"
 	else
-		echo >&2 "No need to upgrade Dotclear ${VER_DOTCLEAR}"
+		echo >&2 "No need to upgrade Dotclear ${VERSION_IMAGE}"
 	fi
 fi
 
@@ -67,7 +76,7 @@ echo >&2 "| Summary: "
 echo >&2 "| Alpine $(cat /etc/alpine-release)"
 echo >&2 "| Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
 echo >&2 "| PHP $(php -r "echo PHP_VERSION;")"
-echo >&2 "| Dotclear ${VER_DOTCLEAR}"
+echo >&2 "| Dotclear ${VERSION_IMAGE}"
 
 # Start web server
 php-fpm83 -D # FPM must start first in daemon mode
