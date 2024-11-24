@@ -74,12 +74,12 @@ RUN apk add --no-cache --update \
     ${VER_PHP}-iconv \
     ${VER_PHP}-gettext \
     ${VER_PHP}-mysqli \
+    ${VER_PHP}-pgsql \
     ${VER_PHP}-opcache \
     ${VER_PHP}-dom \
     ${VER_PHP}-xml \
     ${VER_PHP}-simplexml \
     ${VER_PHP}-zip \
-    ${VER_PHP}-pdo_pgsql \
     ${VER_PHP}-pdo_sqlite
 
 # Copy PHP configuration
