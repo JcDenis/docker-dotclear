@@ -8,13 +8,15 @@
 ![Testing image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_testing.yml/badge.svg) 
 ![Unstable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_unstable.yml/badge.svg) 
 
-## THE SHORT WAY
+
+## 1. THE SHORT WAY
 
 In your futur server, with Docker compose installed, execute:
 
     curl -fsSL -o docker-compose.yaml https://raw.githubusercontent.com/JcDenis/docker-dotclear/refs/heads/master/docker-compose.yaml && docker-compose up -d
 
-## WHAT IS DOTCLEAR
+
+## 2. WHAT IS DOTCLEAR
 
 Dotclear is an open-source web publishing software.
 Take control over your blog!
@@ -24,7 +26,8 @@ tool allowing anyone to publish on the web, regardless of their technical skills
 
 => https://dotclear.org/
 
-## WHAT IS DOCKER-DOTCLEAR
+
+## 3. WHAT IS DOCKER-DOTCLEAR
 
 This repository contains all features to build or run Dotclear on a Docker environment.
 It is hightly based on work from [darknao](https://github.com/darknao/docker-dotclear).
@@ -32,7 +35,8 @@ It is hightly based on work from [darknao](https://github.com/darknao/docker-dot
 * Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear) or [Github registry](https://github.com/JcDenis?tab=packages&repo_name=docker-dotclear)
 * Dotclear docker sources are avaialable at [Github repository](https://github.com/JcDenis/docker-dotclear)
 
-### TAGS
+
+### 3.1 TAGS
 
 Docker image tag is based on __Alpine Linux OS, Nginx server and PHP-FPM language__. 
 It is composed of Dotclear version or release type:
@@ -42,7 +46,8 @@ It is composed of Dotclear version or release type:
 * testing: The latest dev of Dotclear stable branch
 * dev : A Dotclear unstable (nightly) release
 
-### BUILDS
+
+### 3.2 BUILDS
 
 Clone this repository:
 
@@ -66,7 +71,8 @@ Builds should support:
 * linux/386,linux/amd64,linux/arm64,linux/arm/V7 plateforms
 * docker container healthcheck
 
-### DOCKER
+
+### 3.3 DOCKER
 
 **Exemple of a docker compose file with a mariadb database:**
 
@@ -150,9 +156,11 @@ or with a simple docker command:
 
 SQLite database will be stored in folder \var\www\dotclear
 
-### BLOG
 
-__Standard configuration by subfolders__
+### 3.4 BLOG
+
+
+### 3.4.1 Standard configuration by subfolders
 
 These images use Dotclear URL rewriting in PATH INFO mode.
 By default URL and path should be corrected by a custom plugin automatically.
@@ -167,7 +175,22 @@ Blogs administration is available at http://localhost/admin
 When you create a new blog in this configuration,
 you must use the _blog_id_ with the trailing slash in blog URL setting like http://localhost/blog_id/
 
-__Standard configuration by subdomains__
+__Web server configuration__
+
+To customized web server configuration for subfolders, edit:
+
+> /var/www/dotclear/app/servers/subfolder.conf
+
+Original contents looks like:
+
+    server {
+        server_name localhost;
+        include /etc/nginx/snippets/snippets_subfolder.conf;
+        include /etc/nginx/snippets/snippets_common.conf;
+    }
+
+
+#### 3.4.2 Standard configuration by subdomains
 
 These images use Dotclear URL rewriting in PATH INFO mode.
 By default URL and path should be corrected by a custom plugin automatically.
@@ -182,7 +205,28 @@ Blogs administration is available at http://xxx.domain.tld/admin
 When you create a new blog in this configuration,
 you must use the _blog_id_ as subdomain in blog URL setting like http://blog_id.domain.tld/
 
-__Non standard configuration__
+__Web server configuration__
+
+To customized web server configuration for subdomains, edit:
+
+> /var/www/dotclear/app/servers/subdomain.conf
+
+Original contents looks like:
+
+    server {
+        server_name ~^(?<dc_blog_id>\w*?)?\.?(\w+\.\w+)$;
+        if ($dc_blog_id = '') {
+                set $dc_blog_id default;
+        }
+        if ($dc_blog_id = 'blog') {
+                set $dc_blog_id default;
+        }
+        include /etc/nginx/snippets/snippets_subdomain.conf;
+        include /etc/nginx/snippets/snippets_common.conf;
+    }
+
+
+#### 3.4.3 Non standard configuration
 
 Setup nginx server configuration (see bellow):
 
@@ -204,7 +248,8 @@ Then fix public_path and public_url for the blog:
  * set _public_path_ to the real path on system to public directory of the blog
  * set _public_url_ to the URL of the public directory of the blog
 
-### STRUCTURE
+
+### 3.5 STRUCTURE
 
 Default root path of this image structure is in __/var/www/dotclear__ with sub folders:
 
@@ -216,23 +261,29 @@ Default root path of this image structure is in __/var/www/dotclear__ with sub f
  * _themes_ : Dotclear themes directory
  * _var_ : Dotclear var directory
 
-### UPGRADE
 
-To upgrade Dotclear to next version,
-it is recommanded to pull latest image and restart the docker container
+### 3.6 UPGRADE
+
+To upgrade Dotclear to next version it is recommanded to pull latest image and restart the docker container:
+
+    docker pull jcpd/docker-dotclear:latest && docker compose up -d
+
 or use Dotclear buitin update system but themes wiil not be updated.
 
-### TODO
+
+### 4. TODO
 
 * Add better cache management. From another container or from Dotclear container.
 * Add mail support.
 
-### CONTRIBUTING
+
+### 5. CONTRIBUTING
 
 This image is an open source project. If you'd like to contribute, please read the [CONTRIBUTING file](/CONTRIBUTING.md).
 You can submit a pull request, or feel free to use any other way you'd prefer.
 
-### LICENSE
+
+### 6. LICENSE
 
 Copyright Jean-Christian Paul Denis
 AGPL-v3 <https://www.gnu.org/licenses/agpl-3.0.html>
