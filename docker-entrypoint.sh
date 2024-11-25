@@ -21,7 +21,16 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 # Update Docker structure
 echo >&2 "Updating Docker structure..."
-cp -Ru /var/lib/dotclear /var/www
+mkdir -p /var/www/dotclear/app \
+	/var/www/dotclear/blogs \
+	/var/www/dotclear/cache \
+	/var/www/dotclear/plugins \
+	/var/www/dotclear/servers \
+	/var/www/dotclear/themes \
+	/var/www/dotclear/var
+cp -rn /var/lib/dotclear/blogs/* /var/www/dotclear/blogs
+cp -r /var/lib/dotclear/plugins/* /var/www/dotclear/plugins
+cp -rn /var/lib/dotclear/servers/* /var/www/dotclear/servers
 
 # Check if Dotclear is already on system
 if ! [ -e index.php -a -e src/App.php ]; then
@@ -50,7 +59,7 @@ fi
 
 # Update Docker structure
 echo >&2 "Updating Dotclear common themes..."
-cp -Ru /var/www/dotclear/app/themes/* /var/www/dotclear/themes
+cp -rf /var/www/dotclear/app/themes/* /var/www/dotclear/themes
 
 # DEBUG mode for non stable releases
 if [ "$CNL_DOTCLEAR" == "stable" ]; then
