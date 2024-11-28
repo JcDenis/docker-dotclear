@@ -54,6 +54,10 @@ jobs:
     needs: check_release
     if: needs.check_release.outputs.exists == 'false'
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Create repository release
         id: create_release
         uses: elgohr/Github-Release-Action@v5
