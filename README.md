@@ -74,7 +74,10 @@ Builds should support:
 
 ### 3.3 DOCKER
 
-**Exemple of a docker compose file with a mariadb database:**
+
+#### 3.3.1 Exemple of a docker compose file with a mariadb database
+
+Create and edit a **docker-compose.yaml** file and put into it this contents :
 
     services:
       # MYSQL database service
@@ -134,7 +137,10 @@ On first run Dotclear does its installation process and ask you to create a firs
 On first run you should wait that container download and install required version of Dotclear,
 this may takes a while...
 
-**Another exemple with an SQLite database and a single container:**
+
+#### 3.3.2 Exemple of a docker compose file with an SQLite database and a single container
+
+Create and edit a **docker-compose.yaml** file and put into it this contents :
 
     services:
       dotclear:
@@ -150,7 +156,14 @@ this may takes a while...
           DC_DBNAME: \var\www\dotclear\sqlite.db
           DC_ADMINMAILFROM: contact@exemple.com
 
-or with a simple docker command:
+Then execute:
+
+    docker-compose up -d
+
+
+#### 3.3.3 Direct docker run without docker compose
+
+Exemple with a simple docker command :
 
     docker run -d --name dotclear -p 80:80 -v dotclear:/var/www/dotclear -e DC_DBDRIVER=sqlite -e DC_DBNAME=/var/www/dotclear/sqlite.db -e DC_ADMINMAILFROM=contact@exemple.com jcpd/docker-dotclear:latest
 
@@ -160,7 +173,7 @@ SQLite database will be stored in folder \var\www\dotclear
 ### 3.4 BLOG
 
 
-### 3.4.1 Standard configuration by subfolders
+#### 3.4.1 Standard configuration by subfolders
 
 These images use Dotclear URL rewriting in PATH INFO mode.
 By default URL and path should be corrected by a custom plugin automatically.
