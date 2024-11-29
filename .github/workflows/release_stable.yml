@@ -64,7 +64,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          title: Dotclear ${{ needs.check_release.outputs.version }}
+          title: ${{ needs.check_release.outputs.version }}
           tag: ${{ needs.check_release.outputs.version }}
           prerelease: false
 
