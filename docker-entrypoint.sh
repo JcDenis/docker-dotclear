@@ -16,8 +16,8 @@ fi
 export COMPARE_IMAGE=$(sed -n "${COMPARE_HAYSTACK}" /usr/src/dotclear/release.json)
 export VERSION_IMAGE=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" /usr/src/dotclear/release.json)
 
-# Simple versions comparison function that works with Dotclear stable versioning
-function version { echo "$@" | awk -F. '{ printf("%d%08d%04d%03d\n", $1,$2,$3,$4); }'; }
+# Simple versions comparison function that fits all releases
+function version { echo "$@" | awk -F. '{ printf("%d%04d%03d\n", $1,$2,$3); }'; }
 
 # Update Docker structure
 echo >&2 "Updating Docker structure..."
