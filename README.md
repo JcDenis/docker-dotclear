@@ -32,14 +32,14 @@ tool allowing anyone to publish on the web, regardless of their technical skills
 This repository contains all features to build or run Dotclear on a Docker environment.
 It is hightly based on work from [darknao](https://github.com/darknao/docker-dotclear).
 
-* Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear) or [Github registry](https://github.com/JcDenis?tab=packages&repo_name=docker-dotclear)
+* Dotclear docker images are avaialable at [Docker hub](https://hub.docker.com/r/jcpd/docker-dotclear) or [Github registry](https://github.com/JcDenis/docker-dotclear/pkgs/container/docker-dotclear)
 * Dotclear docker sources are avaialable at [Github repository](https://github.com/JcDenis/docker-dotclear)
 
 
 ### 3.1 TAGS
 
-Docker image tag is based on __Alpine Linux OS, Nginx server and PHP-FPM language__. 
-It is composed of Dotclear version or release type:
+Docker images are based on __Alpine Linux OS, Nginx server and PHP-FPM language__. 
+Image tags are composed of Dotclear version or release type:
 
 * x.x : A given Dotclear version (ex: 2.31.1)
 * latest : The latest stable Dotclear release
