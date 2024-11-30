@@ -24,7 +24,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.dotclear.outputs.version }}
-      exists: ${{ steps.repository.outputs.release-exists }}
+      exists: ${{ steps.repository.outputs.exists }}
     steps:
       - name: Install required packages
         run: curl -sSL https://bit.ly/install-xq | sudo bash
@@ -42,9 +42,9 @@ jobs:
 
       - name: Check repository releases
         id: repository
-        uses: insightsengineering/release-existence-action@v1.0.0
-        with:
-          release-tag: ${{ steps.dotclear.outputs.version }}
+        uses: mukunku/tag-exists-action@v1.6.0
+        with: 
+          tag: ${{ steps.dotclear.outputs.version }}
 
   do_release:
     name: Create repository release according to Dotclear version
