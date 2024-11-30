@@ -23,14 +23,17 @@ function version { echo "$@" | awk -F. '{ printf("%d%04d%03d\n", $1,$2,$3); }'; 
 echo >&2 "Updating Docker structure..."
 mkdir -p /var/www/dotclear/app \
 	/var/www/dotclear/blogs \
+	/var/www/dotclear/blogs/default \
 	/var/www/dotclear/cache \
 	/var/www/dotclear/plugins \
 	/var/www/dotclear/servers \
 	/var/www/dotclear/themes \
 	/var/www/dotclear/var
-cp -rn /var/lib/dotclear/blogs/* /var/www/dotclear/blogs
-cp -r /var/lib/dotclear/plugins/* /var/www/dotclear/plugins
-cp -rn /var/lib/dotclear/servers/* /var/www/dotclear/servers
+# Always replace image plugins
+cp -rf /var/lib/dotclear/plugins/* /var/www/dotclear/plugins
+# Copy nginx server conf only if not exists
+cp -n /var/lib/dotclear/servers/subdomain.conf /var/www/dotclear/servers/
+cp -n /var/lib/dotclear/servers/subfolder.conf /var/www/dotclear/servers/
 
 # Check if Dotclear is already on system
 if ! [ -e index.php -a -e src/App.php ]; then
