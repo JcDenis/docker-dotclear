@@ -116,6 +116,27 @@ ENV DC_TPL_CACHE=/var/www/dotclear/cache
 ENV DC_VAR=/var/www/dotclear/var
 
 ##
+# Plugins
+##
+
+# DotclearWatch
+ENV VER_DW=0.9.3
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$VER_DW/plugin-DotclearWatch.zip" \
+    && mkdir -p /var/lib/dotclear/plugins/DotclearWatch \
+    && unzip -d /var/lib/dotclear/plugins plugin.zip \
+    && chown -R www:www /var/lib/dotclear/plugins \
+    && rm plugin.zip
+
+# sysInfo
+ENV VER_SI=9.6
+RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_SI/plugin-sysInfo-$VER_SI.zip" \
+    && mkdir -p /var/lib/dotclear/plugins/sysInfo \
+    && unzip -d /var/lib/dotclear/plugins plugin.zip \
+    && chown -R www:www /var/lib/dotclear/plugins \
+    && rm plugin.zip
+
+
+##
 # END
 ##
 
