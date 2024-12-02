@@ -46,13 +46,13 @@ jobs:
       - name: notfound
         if: (steps.registry.outputs.image_exists == 'false')
         run: |
-          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear..outputs.version }} not found.'
+          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.version }} not found.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: found
         if: (steps.registry.outputs.image_exists == 'true')
         run: |
-          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear..outputs.version }} found.'
+          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.version }} found.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_image:
