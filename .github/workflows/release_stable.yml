@@ -38,7 +38,7 @@ jobs:
         uses: k4kratik/container-image-check-custom-action@v4
         with:
           type: dockerhub
-          container_repo_name: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}
+          container_repo_name: ${{ env.DOTCLEAR_IMAGE }}
           image_tag: ${{ steps.dotclear.outputs.version }}
           dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
           dockerhub_token: ${{ secrets.DOCKER_TOKEN }}
