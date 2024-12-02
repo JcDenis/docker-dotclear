@@ -42,13 +42,13 @@ jobs:
       - name: notfound
         if: (steps.repository.outputs.exists == 'false')
         run: |
-          SUMMARY=$'Repository tag ${{ steps.dotclear.outputs.version }} not found.\nLaunching next job.'
+          SUMMARY=$'${{ github.repository }} repository tag ${{ steps.dotclear.outputs.version }} not found.\nLaunching next job.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: found
         if: (steps.repository.outputs.exists == 'true')
         run: |
-          SUMMARY=$'Repository tag ${{ steps.dotclear.outputs.version }} found.\nStopping workflow.'
+          SUMMARY=$'${{ github.repository }} repository tag ${{ steps.dotclear.outputs.version }} found.\nStopping workflow.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_release:
