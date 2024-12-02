@@ -46,7 +46,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: found
-        if: (steps.repository.outputs.exists == 'false')
+        if: (steps.repository.outputs.exists == 'true')
         run: |
           SUMMARY=$'Repository tag ${{ steps.dotclear.outputs.version }} found.\nStopping workflow.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
@@ -74,7 +74,7 @@ jobs:
 
       - name: summary
         run: |
-          SUMMARY=$'Release ${{ steps.dotclear.outputs.version }} created.'
+          SUMMARY=$'Release ${{ steps.dotclear.outputs.version }} created.\n${{ steps.create_release.outputs.url }}'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_image:
