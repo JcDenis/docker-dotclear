@@ -26,12 +26,10 @@ jobs:
       version: ${{ steps.dotclear.outputs.version }}
       exists: ${{ steps.repository.outputs.exists }}
     steps:
-      - name: Install required packages
-        run: curl -sSL https://bit.ly/install-xq | sudo bash
-
       - name: Download and parse last version
         id: dotclear
         run: |
+          curl -sSL https://bit.ly/install-xq | sudo bash
           curl -fsSL -o versions.xml ${{ env.DOTCLEAR_URL }}
           echo version=$(cat versions.xml | xq -x "//release[@name='${{ env.DOTCLEAR_CANAL }}']/@version") >> $GITHUB_OUTPUT
 
@@ -42,12 +40,12 @@ jobs:
           tag: ${{ steps.dotclear.outputs.version }}
 
   do_release:
+    needs: check_release
+    if: (needs.check_release.outputs.exists == 'false')
     name: Create repository release according to Dotclear version
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: check_release
-    if: (needs.check_release.outputs.exists == 'false')
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -58,10 +56,13 @@ jobs:
         with:
           name: ${{ needs.check_release.outputs.version }}
           tag_name: ${{ needs.check_release.outputs.version }}
+          body: Source for docker image of Dotclear ${{ needs.check_release.outputs.version }} stable
           draft: false
           prerelease: false
 
   do_image:
+    needs: check_release
+    if: ((needs.check_release.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
     name: Build and push latest and versionned images
     runs-on: ubuntu-latest
     permissions:
@@ -69,8 +70,6 @@ jobs:
       contents: read
       attestations: write
       id-token: write
-    needs: check_release
-    if: ((needs.check_release.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
