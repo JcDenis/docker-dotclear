@@ -17,7 +17,7 @@ jobs:
       uses: peter-evans/dockerhub-description@v4
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_TOKEN }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
         repository: jcpd/docker-dotclear
         short-description: ${{ github.event.repository.description }}
         enable-url-completion: true
