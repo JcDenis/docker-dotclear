@@ -17,7 +17,7 @@ env:
   DOCKER_NAMESPACE: jcpd
 
 jobs:
-  Check_image:
+  check_image:
     name: Check and compare official Dotclear version
     runs-on: ubuntu-latest
     permissions:
@@ -56,8 +56,8 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_image:
-    needs: Check_image
-    if: ((needs.Check_image.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
+    needs: check_image
+    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
     name: Build and push latest and versionned images
     runs-on: ubuntu-latest
     permissions:
@@ -98,9 +98,9 @@ jobs:
           sbom: true
           push: true
           tags: |
-            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.Check_image.outputs.version }}
+            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:latest
-            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ needs.Check_image.outputs.version }}
+            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ needs.check_image.outputs.version }}
             ghcr.io/${{ env.GITHUB_REPOSITORY }}:latest
           build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
           platforms: linux/386,linux/amd64,linux/arm64,linux/arm/V7
@@ -115,4 +115,4 @@ jobs:
           to: ${{ secrets.TELEGRAM_ID }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
-          message: Images __${{ env.DOTCLEAR_IMAGE }}:latest__ and  __${{ env.DOTCLEAR_IMAGE }}:${{ needs.Check_image.outputs.version }}__ successfully generated.
+          message: Images __${{ env.DOTCLEAR_IMAGE }}:latest__ and  __${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}__ successfully generated.
