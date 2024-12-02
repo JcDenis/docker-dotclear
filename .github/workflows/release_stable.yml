@@ -2,7 +2,7 @@ name: Build and push stable image
 
 on:
   schedule:
-  - cron: '0 10 * * *'
+  - cron: '15 10 * * *'
   workflow_dispatch:
     inputs:
       rebuild:
@@ -35,11 +35,6 @@ jobs:
           curl -fsSL -o versions.xml ${{ env.DOTCLEAR_URL }}
           echo version=$(cat versions.xml | xq -x "//release[@name='${{ env.DOTCLEAR_CANAL }}']/@version") >> $GITHUB_OUTPUT
 
-      - name: Check out the repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Check repository releases
         id: repository
         uses: mukunku/tag-exists-action@v1.6.0
@@ -52,12 +47,11 @@ jobs:
     permissions:
       contents: write
     needs: check_release
-    if: needs.check_release.outputs.exists == 'false'
+    if: (needs.check_release.outputs.exists == 'false')
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
       - name: Create repository release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -76,7 +70,7 @@ jobs:
       attestations: write
       id-token: write
     needs: check_release
-    if: (needs.check_release.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true')
+    if: ((needs.check_release.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
