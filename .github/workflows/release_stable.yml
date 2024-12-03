@@ -5,7 +5,11 @@ on:
   - cron: '15 10 * * *'
   workflow_dispatch:
     inputs:
-      rebuild:
+      force_rebuild:
+        description: 'rebuild'
+        type: boolean
+        required: true
+      force_release:
         description: 'rebuild'
         type: boolean
         required: true
@@ -57,7 +61,7 @@ jobs:
 
   do_release:
     needs: check_image
-    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
+    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.force_release == 'true'))
     name: Create repository tag and release
     runs-on: ubuntu-latest
     permissions:
@@ -80,7 +84,7 @@ jobs:
 
   do_image:
     needs: check_image
-    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.rebuild == 'true'))
+    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.force_rebuild == 'true'))
     name: Build and push latest and versionned images
     runs-on: ubuntu-latest
     permissions:
