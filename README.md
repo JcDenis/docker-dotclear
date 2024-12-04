@@ -1,6 +1,6 @@
 # README
 
-![Stable image version](https://img.shields.io/github/v/release/JcDenis/docker-dotclear)
+![Stable image version](https://img.shields.io/docker/v/jcpd/docker-dotclear?sort=semver)
 ![Docker image size](https://img.shields.io/docker/image-size/jcpd/docker-dotclear/latest)
 ![Stable image downloads](https://img.shields.io/docker/pulls/jcpd/docker-dotclear)
 
