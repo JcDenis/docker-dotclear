@@ -9,10 +9,6 @@ on:
         description: 'rebuild'
         type: boolean
         required: true
-      force_release:
-        description: 'rebuild'
-        type: boolean
-        required: true
 
 env:
   DOTCLEAR_IMAGE: docker-dotclear
@@ -57,29 +53,6 @@ jobs:
         if: (steps.registry.outputs.image_exists == 'true')
         run: |
           SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.version }} found.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-  do_release:
-    needs: check_image
-    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.force_release == 'true'))
-    name: Create repository tag and release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ncipollo/release-action@v1
-        with:
-          name: Docker Dotclear ${{ needs.check_image.outputs.version }}
-          commit: master
-          tag: ${{ needs.check_image.outputs.version }}
-          body: Source for docker image of Dotclear ${{ needs.check_image.outputs.version }} stable
-          draft: false
-          prerelease: false
-
-      - name: summary
-        run: |
-          SUMMARY=$'Docker Dotclear ${{ steps.dotclear.outputs.version }} release created.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_image:
