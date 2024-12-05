@@ -127,6 +127,14 @@ RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/
     && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
 
+# dcLog
+ENV VER_DL=1.7.3
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$VER_DL/plugin-dcLog.zip" \
+    && mkdir -p /var/lib/dotclear/plugins/dcLog \
+    && unzip -d /var/lib/dotclear/plugins plugin.zip \
+    && chown -R www:www /var/lib/dotclear/plugins \
+    && rm plugin.zip
+
 # sysInfo
 ENV VER_SI=9.6
 RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_SI/plugin-sysInfo-$VER_SI.zip" \
