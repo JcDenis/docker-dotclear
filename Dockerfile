@@ -29,7 +29,7 @@ RUN adduser -D -g 'www' www
 
 # Install required package
 RUN apk add --no-cache --update \
-    nginx --with-http_realip_module \
+    nginx \
     curl \
     tar \
     unzip \
