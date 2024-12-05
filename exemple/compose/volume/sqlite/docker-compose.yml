@@ -1,0 +1,16 @@
+services:
+  dotclear:
+    image: jcpd/docker-dotclear:latest
+    container_name: dotclear
+    restart: unless-stopped
+    volumes:
+      - dotclear:/var/www/dotclear
+    ports:
+      - 80:80
+    environment:
+      DC_DBDRIVER: sqlite
+      DC_DBNAME: \var\www\dotclear\sqlite.db
+      DC_ADMINMAILFROM: contact@exemple.com
+
+volumes:
+  dotclear:
