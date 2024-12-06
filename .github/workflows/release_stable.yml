@@ -24,7 +24,8 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.dotclear.outputs.version }}
-      exists: ${{ steps.registry.outputs.image_exists }}
+      has_image: ${{ steps.registry.outputs.image_exists }}
+      has_branch: ${{ steps.branch.outputs.exists }}
     steps:
       - name: Download and parse last version
         id: dotclear
@@ -43,6 +44,12 @@ jobs:
           dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
           dockerhub_token: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Check repository branch
+        id: branch
+        uses: GuillaumeFalourd/branch-exists@v1.1
+        with:
+          branch: ${{ steps.dotclear.outputs.version }}
+
       - name: notfound
         if: (steps.registry.outputs.image_exists == 'false')
         run: |
@@ -55,9 +62,40 @@ jobs:
           SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.version }} found.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
+  do_branch:
+    needs: check_image
+    if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true'))
+    name: Build and push latest and versionned images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Create repository branch
+        id: create
+        uses: peterjgrainger/action-create-branch@v2.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: ${{ needs.check_image.outputs.version }}
+
+      - name: notfound
+        if: (steps.create.outputs.created == 'false')
+        run: |
+          SUMMARY=$'Branch ${{ steps.dotclear.outputs.version }} has not been created.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+      - name: found
+        if: (steps.create.outputs.created == 'true')
+        run: |
+          SUMMARY=$' Branch ${{ steps.dotclear.outputs.version }} has been created.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
   do_image:
     needs: check_image
-    if: ((needs.check_image.outputs.exists == 'false') || (github.event.inputs.force_rebuild == 'true'))
+    if: ((needs.check_image.outputs.has_image == 'false') || (github.event.inputs.force_rebuild == 'true'))
     name: Build and push latest and versionned images
     runs-on: ubuntu-latest
     permissions:
