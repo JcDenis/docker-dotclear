@@ -8,6 +8,8 @@ env:
   DOCKER_NAMESPACE: jcpd
 
 jobs:
+  build_image:
+    if: (github.ref_name != 'master')
     name: Build and push selected version images
     runs-on: ubuntu-latest
     permissions:
