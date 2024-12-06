@@ -65,10 +65,10 @@ jobs:
   do_branch:
     needs: check_image
     if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true'))
-    name: Build and push latest and versionned images
+    name: Create repository branch
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
