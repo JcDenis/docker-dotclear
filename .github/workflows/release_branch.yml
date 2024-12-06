@@ -1,0 +1,69 @@
+name: Build and push image from branch
+
+on:
+  workflow_dispatch:
+
+env:
+  DOTCLEAR_IMAGE: docker-dotclear
+  DOCKER_NAMESPACE: jcpd
+
+jobs:
+    if: ((github.ref_name != 'master'))
+    name: Build and push selected version images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Log in to Github registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: set lower case github repository
+        run: |
+          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
+        env:
+          REPO: '${{ github.repository }}'
+
+      - name: Build and push images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          sbom: true
+          push: true
+          tags: |
+            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
+            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ github.ref_name }}
+          build-args: CANAL=stable
+          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/V7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Send Telegram Message Ok
+        uses: appleboy/telegram-action@master
+        env:
+          GITHUB_CONTEXT: ${{toJSON(github)}}
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: Image __${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}__ successfully generated.
