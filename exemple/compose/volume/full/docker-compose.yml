@@ -1,0 +1,69 @@
+services:
+  # Nginx proxy manager
+  npmapp:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    container_name: npmapp
+    ports:
+      - 80:80
+      - 443:443
+      - 81:81
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    healthcheck:
+      test: ["CMD", "/usr/bin/check-health"]
+      interval: 10s
+      timeout: 3s
+
+  # Mariadb database
+  dcstabledb:
+    image: mariadb:latest
+    container_name: dcstabledb
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    volumes:
+      - dcstable_db:/var/lib/mysql
+    depends_on:
+      npmapp:
+        condition: service_healthy
+    environment:
+      MYSQL_ROOT_PASSWORD: dotclear_root
+      MYSQL_DATABASE: dotclear_db
+      MYSQL_USER: dotclear_user
+      MYSQL_PASSWORD: dotclear_pwd
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Doclear web application
+  dcstableapp:
+    image: jcpd/docker-dotclear:latest
+    container_name: dcstableapp
+    restart: unless-stopped
+    volumes:
+      - dcstable_app:/var/www/dotclear
+    depends_on:
+      dcstabledb:
+        condition: service_healthy
+    environment:
+      DC_DBDRIVER: mysqlimb4
+      DC_DBHOST: dcstabledb
+      DC_DBNAME: dotclear_db
+      DC_DBUSER: dotclear_user
+      DC_DBPASSWORD: dotclear_pwd
+      DC_DBPREFIX: dc_
+      DC_ADMINMAILFROM: contact@exemple.com
+
+networks:
+  default:
+    name: npm
+
+volumes:
+  npm_data:
+  npm_letsencrypt:
+  dcstable_db:
+  dcstable_app:

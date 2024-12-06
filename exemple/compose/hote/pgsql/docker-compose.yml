@@ -1,0 +1,38 @@
+services:
+
+  dcstabledb:
+    image: postgres
+    container_name: dcstabledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: dcstable_pwd
+      POSTGRES_USER: dcstable_user
+      POSTGRES_DB: dcstable_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./dcstable/db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  dcstableapp:
+    image: jcpd/docker-dotclear:latest
+    container_name: dcstableapp
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./dcstable/app:/var/www/dotclear
+    depends_on:
+      dcstabledb:
+        condition: service_healthy
+    environment:
+      DC_DBDRIVER: pgsql
+      DC_DBHOST: dcstabledb
+      DC_DBNAME: dcstable_db
+      DC_DBUSER: dcstable_user
+      DC_DBPASSWORD: dcstable_pwd
+      DC_DBPREFIX: dc_
+      DC_ADMINMAILFROM: contact@exemple.com

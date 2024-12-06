@@ -1,0 +1,40 @@
+# jcpd/docker-dotclear:latest
+services:
+  dcstabledb:
+    image: mariadb:latest
+    container_name: dcstabledb
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    volumes:
+      - ./dcstable/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: dotclear_root
+      MYSQL_DATABASE: dotclear_db
+      MYSQL_USER: dotclear_user
+      MYSQL_PASSWORD: dotclear_pwd
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  dcstableapp:
+    image: jcpd/docker-dotclear:latest
+    container_name: dcstableapp
+    restart: unless-stopped
+    volumes:
+      - ./dcstable/app:/var/www/dotclear
+    ports:
+      - 80:80
+    depends_on:
+      dcstabledb:
+        condition: service_healthy
+    environment:
+      DC_DBDRIVER: mysqlimb4
+      DC_DBHOST: dcstabledb
+      DC_DBNAME: dotclear_db
+      DC_DBUSER: dotclear_user
+      DC_DBPASSWORD: dotclear_pwd
+      DC_DBPREFIX: dc_
+      DC_ADMINMAILFROM: contact@exemple.com

@@ -4,13 +4,10 @@ services:
     container_name: dcstableapp
     restart: unless-stopped
     volumes:
-      - dcstable:/var/www/dotclear
+      - ./dcstable:/var/www/dotclear
     ports:
       - 80:80
     environment:
       DC_DBDRIVER: sqlite
       DC_DBNAME: \var\www\dotclear\sqlite.db
       DC_ADMINMAILFROM: contact@exemple.com
-
-volumes:
-  dcstable:
