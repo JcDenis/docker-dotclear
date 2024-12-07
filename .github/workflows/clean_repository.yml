@@ -3,6 +3,17 @@ on:
   schedule:
     - cron: '45 11 * * 0'
   workflow_dispatch:
+    inputs:
+      days:
+        description: 'retain days'
+        required: true
+        default: 15
+        type: choice
+        options:
+        - 1
+        - 2
+        - 7
+        - 15
 
 jobs:
   del_runs:
@@ -16,5 +27,5 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: 30
+          retain_days: ${{ github.event.inputs.days }}
           keep_minimum_runs: 7

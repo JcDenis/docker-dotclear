@@ -84,13 +84,13 @@ jobs:
       - name: notfound
         if: (steps.create.outputs.created == 'false')
         run: |
-          SUMMARY=$'Branch ${{ steps.dotclear.outputs.version }} has not been created.'
+          SUMMARY=$'Branch ${{ needs.check_image.outputs.version }} has not been created.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: found
         if: (steps.create.outputs.created == 'true')
         run: |
-          SUMMARY=$' Branch ${{ steps.dotclear.outputs.version }} has been created.'
+          SUMMARY=$' Branch ${{ needs.check_image.outputs.version }} has been created.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_image:
