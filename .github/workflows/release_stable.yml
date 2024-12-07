@@ -13,7 +13,6 @@ on:
 env:
   DOTCLEAR_IMAGE: docker-dotclear
   DOTCLEAR_CANAL: stable
-  DOTCLEAR_URL: https://download.dotclear.org/versions.xml
   DOCKER_NAMESPACE: jcpd
 
 jobs:
@@ -23,16 +22,20 @@ jobs:
     permissions:
       contents: read
     outputs:
-      version: ${{ steps.dotclear.outputs.version }}
+      version: ${{ steps.dotclear.outputs.tag }}
       has_image: ${{ steps.registry.outputs.image_exists }}
       has_branch: ${{ steps.branch.outputs.exists }}
     steps:
-      - name: Download and parse last version
+      - name: Get last dotclear repository tag
         id: dotclear
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: dotclear/dotclear
+
+      - name: version
         run: |
-          curl -sSL https://bit.ly/install-xq | sudo bash
-          curl -fsSL -o versions.xml ${{ env.DOTCLEAR_URL }}
-          echo version=$(cat versions.xml | xq -x "//release[@name='${{ env.DOTCLEAR_CANAL }}']/@version") >> $GITHUB_OUTPUT
+          SUMMARY=$'Last Dotclear repository tag is ${{ steps.dotclear.outputs.tag }}.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Check registry image
         id: registry
@@ -40,7 +43,7 @@ jobs:
         with:
           type: dockerhub
           container_repo_name: ${{ env.DOTCLEAR_IMAGE }}
-          image_tag: ${{ steps.dotclear.outputs.version }}
+          image_tag: ${{ steps.dotclear.outputs.tag }}
           dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
           dockerhub_token: ${{ secrets.DOCKER_TOKEN }}
 
@@ -48,18 +51,18 @@ jobs:
         id: branch
         uses: GuillaumeFalourd/branch-exists@v1.1
         with:
-          branch: ${{ steps.dotclear.outputs.version }}
+          branch: ${{ steps.dotclear.outputs.tag }}
 
       - name: notfound
         if: (steps.registry.outputs.image_exists == 'false')
         run: |
-          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.version }} not found.'
+          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} not found.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: found
         if: (steps.registry.outputs.image_exists == 'true')
         run: |
-          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.version }} found.'
+          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} found.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
   do_branch:
