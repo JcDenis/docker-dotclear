@@ -90,13 +90,13 @@ jobs:
           branch: ${{ needs.check_image.outputs.version }}
 
       - name: notcreated
-        if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true')) && (steps.create.outputs.created == 'false')
+        if: (steps.create.outputs.created != 'true')
         run: |
           SUMMARY=$'Branch ${{ needs.check_image.outputs.version }} has not been created.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: created
-        if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true')) && (steps.create.outputs.created == 'true')
+        if: (steps.create.outputs.created == 'true')
         run: |
           SUMMARY=$' Branch ${{ needs.check_image.outputs.version }} has been created.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
