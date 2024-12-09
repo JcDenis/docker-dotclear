@@ -20,8 +20,41 @@ jobs:
       attestations: write
       id-token: write
     steps:
+      - name: Get last dotclear repository tag
+        id: dotclear
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: dotclear/dotclear
+
+      - name: version
+        run: |
+          SUMMARY=$'Last Dotclear repository tag is ${{ steps.dotclear.outputs.tag }}.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create repository branch
+        id: create
+        uses: peterjgrainger/action-create-branch@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: ${{ steps.dotclear.outputs.tag }}
+
+      - name: notcreated
+        if: (steps.create.outputs.created != 'true')
+        run: |
+          SUMMARY=$'Branch ${{ needs.check_image.outputs.version }} has not been created.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+      - name: created
+        if: (steps.create.outputs.created == 'true')
+        run: |
+          SUMMARY=$' Branch ${{ needs.check_image.outputs.version }} has been created.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
       - name: Check out the repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.dotclear.outputs.tag }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
