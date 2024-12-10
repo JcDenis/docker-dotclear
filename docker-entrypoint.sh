@@ -88,11 +88,11 @@ VERSION_INSTALLED=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" relea
 echo >&2 "| Summary: "
 echo >&2 "| Alpine $(cat /etc/alpine-release)"
 echo >&2 "| Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
-echo >&2 "| PHP $(php -r "echo PHP_VERSION;")"
+echo >&2 "| PHP $(php84 -r "echo PHP_VERSION;")"
 echo >&2 "| Dotclear ${VERSION_INSTALLED}"
 
 # Start web server
-php-fpm83 -D # FPM must start first in daemon mode
+php-fpm84 -D # FPM must start first in daemon mode
 nginx # Then nginx in no daemon mode
 
 exec "$@"
