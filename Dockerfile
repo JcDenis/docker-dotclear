@@ -15,6 +15,9 @@ RUN echo "UTC" > /etc/timezone
 ARG CANAL stable
 ENV CNL_DOTCLEAR=$CANAL
 
+# Create user
+RUN adduser -D -g 'www' www
+
 # Image label
 LABEL org.opencontainers.image.source=https://github.com/JcDenis/docker-dotclear
 LABEL org.opencontainers.image.description="Dotclear docker image $CNL_DOTCLEAR"
@@ -23,9 +26,6 @@ LABEL org.opencontainers.image.licenses=AGPL-3.0
 ##
 # Nginx
 ##
-
-# Create user
-RUN adduser -D -g 'www' www
 
 # Install required package
 RUN apk add --no-cache --update \
@@ -44,6 +44,9 @@ COPY etc/nginx.conf /etc/nginx/nginx.conf
 COPY etc/snippets_subfolder.conf /etc/nginx/snippets/snippets_subfolder.conf
 COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
+
+# Fix vuln alpine/curl 8.11.0-r2
+RUN apk upgrade curl
 
 ##
 # PHP
@@ -96,14 +99,10 @@ RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
     && echo "$(cat versions.xml | xq -x "//release[@name='$CNL_DOTCLEAR']/@checksum") dotclear.zip" | md5sum -c - \
     && mkdir -p /usr/src/dotclear \
     && unzip -d /usr/src dotclear.zip \
-    && rm dotclear.zip \
-    && chown -R www:www /usr/src/dotclear \
-    && chmod -R 755 /usr/src/dotclear/public /usr/src/dotclear/cache \
-    && rm -f /var/www/dotclear/app/*
+    && rm dotclear.zip
 
 # Create www structure
 COPY www /var/lib/dotclear
-RUN chown -R www:www /var/lib/dotclear
 
 # These variables are only used for first install, see inc/config.php, from dotclear 2.32
 # Custom path for dotclear config file
@@ -124,7 +123,6 @@ ENV VER_DW=0.9.3
 RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$VER_DW/plugin-DotclearWatch.zip" \
     && mkdir -p /var/lib/dotclear/plugins/DotclearWatch \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
-    && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
 
 # dcLog
@@ -132,7 +130,6 @@ ENV VER_DL=1.7.3
 RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$VER_DL/plugin-dcLog.zip" \
     && mkdir -p /var/lib/dotclear/plugins/dcLog \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
-    && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
 
 # sysInfo
@@ -140,9 +137,10 @@ ENV VER_SI=9.8
 RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_SI/plugin-sysInfo-$VER_SI.zip" \
     && mkdir -p /var/lib/dotclear/plugins/sysInfo \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
-    && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
 
+# Fix ownership
+RUN chown -R www:www /var/lib/dotclear /usr/src/dotclear
 
 ##
 # END
