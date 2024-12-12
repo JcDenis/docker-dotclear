@@ -6,7 +6,7 @@
 ##
 
 # Use latest Alpine docker release
-FROM alpine:latest
+FROM alpine:3.21.0
 
 # Set system timezone
 RUN echo "UTC" > /etc/timezone
