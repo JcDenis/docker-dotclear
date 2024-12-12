@@ -87,11 +87,13 @@ chmod 600 /var/www/dotclear/servers
 
 # Print summary to docker logs
 VERSION_INSTALLED=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
-echo >&2 "| Summary: "
-echo >&2 "| Alpine $(cat /etc/alpine-release)"
-echo >&2 "| Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
-echo >&2 "| PHP $(php84 -r "echo PHP_VERSION;")"
-echo >&2 "| Dotclear ${VERSION_INSTALLED}"
+echo >&2 '┌──'
+echo >&2 "│ Summary: "
+echo >&2 "│ ◦ Alpine $(cat /etc/alpine-release)"
+echo >&2 "│ ◦ Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
+echo >&2 "│ ◦ PHP $(php84 -r "echo PHP_VERSION;")"
+echo >&2 "│ ◦ Dotclear ${VERSION_INSTALLED}"
+echo >&2 '└──'
 
 # Start web server
 php-fpm84 -D # FPM must start first in daemon mode
