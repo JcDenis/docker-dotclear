@@ -82,6 +82,8 @@ rm -f /var/www/dotclear/servers/default.conf
 # Fix www permissions
 echo >&2 "Setting up permissions..."
 chown -R www:www /var/www/dotclear
+[ -e /var/www/dotclear/config.php ] && chmod 600 /var/www/dotclear/config.php
+chmod 600 /var/www/dotclear/servers
 
 # Print summary to docker logs
 VERSION_INSTALLED=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
