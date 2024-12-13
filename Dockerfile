@@ -154,7 +154,14 @@ WORKDIR /var/www/dotclear/app
 
 # Add container starting script
 ADD docker-entrypoint.sh /entrypoint.sh
+USER www
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+USER root 
+
+# FPM must start first in daemon mode
+# Then nginx in no daemon mode
+SHELL ["/bin/sh", "-c"]
+CMD php-fpm84 -D && nginx
 
 # Docker container healthcheck
 HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:80/fpm-ping || exit 1

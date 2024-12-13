@@ -95,8 +95,4 @@ echo >&2 "│ ◦ PHP $(php84 -r "echo PHP_VERSION;")"
 echo >&2 "│ ◦ Dotclear ${VERSION_INSTALLED}"
 echo >&2 '└──'
 
-# Start web server
-php-fpm84 -D # FPM must start first in daemon mode
-nginx # Then nginx in no daemon mode
-
 exec "$@"
