@@ -46,7 +46,7 @@ COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
 # Fix vuln alpine/curl 8.11.0-r2
-RUN apk upgrade curl
+RUN apk upgrade curl go
 
 ##
 # PHP
