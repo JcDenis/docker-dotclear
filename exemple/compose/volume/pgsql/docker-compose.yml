@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: dcstable_db
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - dcstable:/var/lib/postgresql/data
+      - dcstable_db:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 1s
@@ -24,7 +24,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - dcstable/app:/var/www/dotclear
+      - dcstable_app:/var/www/dotclear
     depends_on:
       dcstabledb:
         condition: service_healthy
@@ -38,4 +38,5 @@ services:
       DC_ADMINMAILFROM: contact@exemple.com
 
 volumes:
-  dcstable:
+  dcstable_db:
+  dcstable_app:

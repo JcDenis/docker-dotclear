@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
     volumes:
-      - dcstable/db:/var/lib/mysql
+      - dcstable_db:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: dotclear_root
       MYSQL_DATABASE: dotclear_db
@@ -24,7 +24,7 @@ services:
     container_name: dcstableapp
     restart: unless-stopped
     volumes:
-      - dcstable/app:/var/www/dotclear
+      - dcstable_app:/var/www/dotclear
     ports:
       - 80:80
     depends_on:
@@ -40,4 +40,5 @@ services:
       DC_ADMINMAILFROM: contact@exemple.com
 
 volumes:
-  dcstable:
+  dcstable_db:
+  dcstable_app:
