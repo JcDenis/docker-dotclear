@@ -19,9 +19,10 @@ ENV CNL_DOTCLEAR=$CANAL
 RUN adduser -D -g 'www' www
 
 # Image label
-LABEL org.opencontainers.image.source=https://github.com/JcDenis/docker-dotclear
-LABEL org.opencontainers.image.description="Dotclear docker image $CNL_DOTCLEAR"
-LABEL org.opencontainers.image.licenses=AGPL-3.0
+LABEL "org.opencontainers.image.authors"="Jean-Christian Paul Denis"
+LABEL "org.opencontainers.image.source"="https://github.com/JcDenis/docker-dotclear"
+LABEL "org.opencontainers.image.description"="Dotclear docker image $CNL_DOTCLEAR"
+LABEL "org.opencontainers.image.licenses"="AGPL-3.0"
 
 ##
 # Nginx
@@ -101,7 +102,7 @@ RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
     && unzip -d /usr/src dotclear.zip \
     && rm dotclear.zip
 
-# Create www structure
+# Create predefined www structure
 COPY www /var/lib/dotclear
 
 # These variables are only used for first install, see inc/config.php, from dotclear 2.32
@@ -119,22 +120,22 @@ ENV DC_VAR=/var/www/dotclear/var
 ##
 
 # DotclearWatch
-ENV VER_DW=0.9.3
-RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$VER_DW/plugin-DotclearWatch.zip" \
+ENV VER_PLUGIN_DW=0.9.3
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$VER_PLUGIN_DW/plugin-DotclearWatch.zip" \
     && mkdir -p /var/lib/dotclear/plugins/DotclearWatch \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
     && rm plugin.zip
 
 # dcLog
-ENV VER_DL=1.7.3
-RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$VER_DL/plugin-dcLog.zip" \
+ENV VER_PLUGIN_DL=1.7.3
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$VER_PLUGIN_DL/plugin-dcLog.zip" \
     && mkdir -p /var/lib/dotclear/plugins/dcLog \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
     && rm plugin.zip
 
 # sysInfo
-ENV VER_SI=9.8
-RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_SI/plugin-sysInfo-$VER_SI.zip" \
+ENV VER_PLUGIN_SI=10.3
+RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_PLUGIN_SI/plugin-sysInfo-$VER_SI.zip" \
     && mkdir -p /var/lib/dotclear/plugins/sysInfo \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
     && rm plugin.zip
