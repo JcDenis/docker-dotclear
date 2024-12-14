@@ -135,7 +135,7 @@ RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download
 
 # sysInfo
 ENV VER_PLUGIN_SI=10.3
-RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_PLUGIN_SI/plugin-sysInfo-$VER_SI.zip" \
+RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_PLUGIN_SI/plugin-sysInfo-$VER_PLUGIN_SI.zip" \
     && mkdir -p /var/lib/dotclear/plugins/sysInfo \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
     && rm plugin.zip
