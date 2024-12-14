@@ -6,7 +6,7 @@
 set -e
 
 # Read image version
-if [ "$CNL_DOTCLEAR" == "stable" ]; then
+if [ "$DC_DOCKER_CANAL" == "stable" ]; then
 	# stable = x.xx.x => x.xx.x
 	export COMPARE_HAYSTACK="s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p"
 else
@@ -65,7 +65,7 @@ echo >&2 "Updating Dotclear common themes..."
 cp -rf /var/www/dotclear/app/themes/* /var/www/dotclear/themes
 
 # DEBUG mode for non stable releases
-if [ "$CNL_DOTCLEAR" == "stable" ]; then
+if [ "$DC_DOCKER_CANAL" == "stable" ]; then
 	echo >&2 "Disabling Dotclear DEBUG mode"
 	sed -i -e "s/ \/\/\*== DC_DEBUG ==/ \/\*== DC_DEBUG ==/g" /var/www/dotclear/app/src/Config.php
 else
