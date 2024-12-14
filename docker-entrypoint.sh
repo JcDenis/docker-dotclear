@@ -99,4 +99,5 @@ echo >&2 '└──'
 php-fpm84 -D # FPM must start first in daemon mode
 nginx # Then nginx in no daemon mode
 
-exec su - www -c "$*"
+# Switch from user root to wwww
+exec runuser -u www "$@"
