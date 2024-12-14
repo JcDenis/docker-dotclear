@@ -33,8 +33,7 @@ RUN apk add --no-cache --update \
     nginx \
     curl \
     tar \
-    unzip \
-    xq
+    unzip
 
 # Create directories structure
 RUN mkdir -p /var/www/dotclear
@@ -46,7 +45,7 @@ COPY etc/snippets_subfolder.conf /etc/nginx/snippets/snippets_subfolder.conf
 COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
-# Fix vuln alpine/curl 8.11.0-r2
+# Fix vuln alpine 3.21.0 : curl 8.11.0-r2 => 8.11-r0
 RUN apk upgrade curl
 
 ##
