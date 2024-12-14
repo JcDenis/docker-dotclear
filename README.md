@@ -290,13 +290,23 @@ or use Dotclear buitin update system but themes wiil not be updated.
 * Add mail support.
 
 
-### 5. CONTRIBUTING
+### 5. SECURITY
+
+* Nginx master process runs as root and set uid/gid to user www
+* PHP-FPM master process runs as root and set uid/gid to user www
+* Docker image entrypoint runs as root and set runuser to www at its end
+* Dotclear application files are chown to user www
+
+For security report see [SECURITY file](/SECURITY.md) or open a ticket on github repository.
+
+
+### 6. CONTRIBUTING
 
 This image is an open source project. If you'd like to contribute, please read the [CONTRIBUTING file](/CONTRIBUTING.md).
 You can submit a pull request, or feel free to use any other way you'd prefer.
 
 
-### 6. LICENSE
+### 7. LICENSE
 
 Copyright Jean-Christian Paul Denis
 AGPL-v3 <https://www.gnu.org/licenses/agpl-3.0.html>
