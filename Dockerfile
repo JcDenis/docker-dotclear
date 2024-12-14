@@ -33,11 +33,13 @@ RUN apk add --no-cache --update \
     nginx \
     curl \
     tar \
-    unzip
+    unzip \
+    libxml2-utils
+    #xq
 
 # Create directories structure
-RUN mkdir -p /var/www/dotclear
-RUN chown -R www:www /var/lib/nginx /var/www
+RUN mkdir -p /var/www/dotclear \
+    && chown -R www:www /var/lib/nginx /var/www
 
 # Copy nginx configuration
 COPY etc/nginx.conf /etc/nginx/nginx.conf
@@ -95,8 +97,8 @@ COPY etc/php-fpm.conf /etc/${VER_PHP}/php-fpm.d/www.conf
 
 # Download latest Dotclear version
 RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
-    && curl -fsSL -o dotclear.zip $(cat versions.xml | xq -x "//release[@name='$CNL_DOTCLEAR']/@href") \
-    && echo "$(cat versions.xml | xq -x "//release[@name='$CNL_DOTCLEAR']/@checksum") dotclear.zip" | md5sum -c - \
+    && curl -fsSL -o dotclear.zip $(xmllint --xpath "//release[@name='$CNL_DOTCLEAR']/@href" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') \
+    && echo "$(xmllint --xpath "//release[@name='$CNL_DOTCLEAR']/@checksum" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') dotclear.zip" | md5sum -c - \
     && mkdir -p /usr/src/dotclear \
     && unzip -d /usr/src dotclear.zip \
     && rm dotclear.zip
