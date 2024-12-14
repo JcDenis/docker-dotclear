@@ -6,7 +6,7 @@
 ##
 
 # Use latest Alpine docker release
-FROM alpine:latest
+FROM alpine:3.21.0
 
 # Set system timezone
 RUN echo "UTC" > /etc/timezone
@@ -15,17 +15,18 @@ RUN echo "UTC" > /etc/timezone
 ARG CANAL stable
 ENV CNL_DOTCLEAR=$CANAL
 
+# Create user
+RUN adduser -D -g 'www' www
+
 # Image label
-LABEL org.opencontainers.image.source=https://github.com/JcDenis/docker-dotclear
-LABEL org.opencontainers.image.description="Dotclear docker image $CNL_DOTCLEAR"
-LABEL org.opencontainers.image.licenses=AGPL-3.0
+LABEL "org.opencontainers.image.authors"="Jean-Christian Paul Denis"
+LABEL "org.opencontainers.image.source"="https://github.com/JcDenis/docker-dotclear"
+LABEL "org.opencontainers.image.description"="Dotclear docker image $CNL_DOTCLEAR"
+LABEL "org.opencontainers.image.licenses"="AGPL-3.0"
 
 ##
 # Nginx
 ##
-
-# Create user
-RUN adduser -D -g 'www' www
 
 # Install required package
 RUN apk add --no-cache --update \
@@ -33,17 +34,20 @@ RUN apk add --no-cache --update \
     curl \
     tar \
     unzip \
-    xq
+    libxml2-utils
 
 # Create directories structure
-RUN mkdir -p /var/www/dotclear
-RUN chown -R www:www /var/lib/nginx /var/www
+RUN mkdir -p /var/www/dotclear \
+    && chown -R www:www /var/lib/nginx /var/www
 
 # Copy nginx configuration
 COPY etc/nginx.conf /etc/nginx/nginx.conf
 COPY etc/snippets_subfolder.conf /etc/nginx/snippets/snippets_subfolder.conf
 COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
+
+# Fix vuln alpine/curl 8.11.0-r2
+RUN apk upgrade curl
 
 ##
 # PHP
@@ -92,18 +96,14 @@ COPY etc/php-fpm.conf /etc/${VER_PHP}/php-fpm.d/www.conf
 
 # Download latest Dotclear version
 RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
-    && curl -fsSL -o dotclear.zip $(cat versions.xml | xq -x "//release[@name='$CNL_DOTCLEAR']/@href") \
-    && echo "$(cat versions.xml | xq -x "//release[@name='$CNL_DOTCLEAR']/@checksum") dotclear.zip" | md5sum -c - \
+    && curl -fsSL -o dotclear.zip $(xmllint --xpath "//release[@name='$CNL_DOTCLEAR']/@href" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') \
+    && echo "$(xmllint --xpath "//release[@name='$CNL_DOTCLEAR']/@checksum" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') dotclear.zip" | md5sum -c - \
     && mkdir -p /usr/src/dotclear \
     && unzip -d /usr/src dotclear.zip \
-    && rm dotclear.zip \
-    && chown -R www:www /usr/src/dotclear \
-    && chmod -R 755 /usr/src/dotclear/public /usr/src/dotclear/cache \
-    && rm -f /var/www/dotclear/app/*
+    && rm dotclear.zip
 
-# Create www structure
+# Create predefined www structure
 COPY www /var/lib/dotclear
-RUN chown -R www:www /var/lib/dotclear
 
 # These variables are only used for first install, see inc/config.php, from dotclear 2.32
 # Custom path for dotclear config file
@@ -120,28 +120,28 @@ ENV DC_VAR=/var/www/dotclear/var
 ##
 
 # DotclearWatch
-ENV VER_DW=0.9.3
-RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$VER_DW/plugin-DotclearWatch.zip" \
+ENV VER_PLUGIN_DW=0.9.3
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$VER_PLUGIN_DW/plugin-DotclearWatch.zip" \
     && mkdir -p /var/lib/dotclear/plugins/DotclearWatch \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
-    && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
 
 # dcLog
-ENV VER_DL=1.7.3
-RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$VER_DL/plugin-dcLog.zip" \
+ENV VER_PLUGIN_DL=1.7.3
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$VER_PLUGIN_DL/plugin-dcLog.zip" \
     && mkdir -p /var/lib/dotclear/plugins/dcLog \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
-    && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
 
 # sysInfo
-ENV VER_SI=9.8
-RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_SI/plugin-sysInfo-$VER_SI.zip" \
+ENV VER_PLUGIN_SI=9.8
+RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/download/$VER_PLUGIN_SI/plugin-sysInfo-$VER_PLUGIN_SI.zip" \
     && mkdir -p /var/lib/dotclear/plugins/sysInfo \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
-    && chown -R www:www /var/lib/dotclear/plugins \
     && rm plugin.zip
+
+# Fix ownership
+RUN chown -R www:www /var/lib/dotclear /usr/src/dotclear
 
 
 ##

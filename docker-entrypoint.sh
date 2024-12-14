@@ -82,17 +82,22 @@ rm -f /var/www/dotclear/servers/default.conf
 # Fix www permissions
 echo >&2 "Setting up permissions..."
 chown -R www:www /var/www/dotclear
+[ -e /var/www/dotclear/config.php ] && chmod 600 /var/www/dotclear/config.php
+chmod 600 -R /var/www/dotclear/servers
 
 # Print summary to docker logs
 VERSION_INSTALLED=$(sed -n "s/^\s*\"release_version\":\s*\"\(.*\)\",/\1/p" release.json)
-echo >&2 "| Summary: "
-echo >&2 "| Alpine $(cat /etc/alpine-release)"
-echo >&2 "| Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
-echo >&2 "| PHP $(php -r "echo PHP_VERSION;")"
-echo >&2 "| Dotclear ${VERSION_INSTALLED}"
+echo >&2 '┌──'
+echo >&2 "│ Summary: "
+echo >&2 "│ ◦ Alpine $(cat /etc/alpine-release)"
+echo >&2 "│ ◦ Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
+echo >&2 "│ ◦ PHP $(php83 -r "echo PHP_VERSION;")"
+echo >&2 "│ ◦ Dotclear ${VERSION_INSTALLED}"
+echo >&2 '└──'
 
 # Start web server
 php-fpm83 -D # FPM must start first in daemon mode
 nginx # Then nginx in no daemon mode
 
-exec "$@"
+# Switch from user root to wwww
+exec runuser -u www "$@"
