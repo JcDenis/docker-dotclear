@@ -99,6 +99,7 @@ jobs:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ env.DOTCLEAR_CANAL }}
           environment: testing
+          organization: ${{ env.DOCKER_NAMESPACE }}
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
