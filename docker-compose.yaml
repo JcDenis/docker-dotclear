@@ -1,4 +1,5 @@
-# jcpd/docker-dotclear:latest
+# Docker compose file exemple for latest Dotclear release. 
+# Using docker volumes and 2 containers, one for blog web server and one for the database
 volumes:
   dc_app:
   dc_db:
@@ -32,8 +33,8 @@ services:
     ports:
       - 80:80
     depends_on:
-      dc_db: # MYSQL database service
-        condition: service_healthy # Waiting for database ready
+      dc_db:
+        condition: service_healthy
     environment:
       DC_DBDRIVER: mysqlimb4
       DC_DBHOST: dc_db
