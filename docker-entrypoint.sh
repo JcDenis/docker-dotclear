@@ -69,8 +69,9 @@ if [ "$DC_DOCKER_CANAL" == "stable" ]; then
 	echo >&2 "Disabling Dotclear DEBUG mode"
 	sed -i -e "s/ \/\/\*== DC_DEBUG ==/ \/\*== DC_DEBUG ==/g" /var/www/dotclear/app/src/Config.php
 else
-	echo >&2 "Enabling Dotclear DEBUG mode"
+	echo >&2 "Enabling Dotclear DEBUG mode and DEV mode"
 	sed -i -e "s/ \/\*== DC_DEBUG ==/ \/\/\*== DC_DEBUG ==/g" /var/www/dotclear/app/src/Config.php
+	sed -i -e "s/'DC_DEV', false/'DC_DEV', true/g" /var/www/dotclear/app/src/Config.php
 fi
 
 # Various cleanup. Sorry not sorry.
