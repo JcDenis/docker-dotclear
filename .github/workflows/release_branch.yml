@@ -63,8 +63,9 @@ jobs:
         id: docker-scout
         uses: docker/scout-action@v1.16.1
         with:
-          command: quickview,cves,recommendations
+          command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
+          environment: stable
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
