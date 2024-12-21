@@ -2,7 +2,7 @@ name: Build and push dev image
 
 on:
   schedule:
-  - cron: '0 1 * * *'
+  - cron: '15 4 * * *'
   workflow_dispatch:
 
 env:
@@ -58,6 +58,16 @@ jobs:
           platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1.16.1
+        with:
+          command: environment,quickview,cves,recommendations
+          image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:dev
+          environment: unstable
+          write-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Send Telegram Message Ok
         uses: appleboy/telegram-action@master
