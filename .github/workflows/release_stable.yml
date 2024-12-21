@@ -59,6 +59,12 @@ jobs:
           SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} found.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
+      - name: rebuild
+        if: ((steps.registry.outputs.image_exists == 'truye') && (github.event.inputs.force_rebuild == 'true'))
+        run: |
+          SUMMARY=$'Rebuilding image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} is forced.'
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
       - name: Check repository branch
         id: branch
         uses: GuillaumeFalourd/branch-exists@v1.1
@@ -151,6 +157,7 @@ jobs:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}
           environment: stable
+          organization: ${{ env.DOCKER_NAMESPACE }}
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -161,6 +168,7 @@ jobs:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:latest
           environment: latest
+          organization: ${{ env.DOCKER_NAMESPACE }}
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

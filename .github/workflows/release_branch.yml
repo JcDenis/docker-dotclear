@@ -66,6 +66,7 @@ jobs:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
           environment: stable
+          organization: ${{ env.DOCKER_NAMESPACE }}
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
