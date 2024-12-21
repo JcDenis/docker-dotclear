@@ -55,7 +55,7 @@ jobs:
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
             ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ github.ref_name }}
           build-args: CANAL=stable
-          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/V7
+          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/riscv64,linux/s390x
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
