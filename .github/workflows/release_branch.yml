@@ -59,6 +59,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1.16.1
+        with:
+          command: quickview,cves,recommendations
+          image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
+          write-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Send Telegram Message Ok
         uses: appleboy/telegram-action@master
         env:
