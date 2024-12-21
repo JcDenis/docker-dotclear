@@ -60,7 +60,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: rebuild
-        if: ((steps.registry.outputs.image_exists == 'truye') && (github.event.inputs.force_rebuild == 'true'))
+        if: ((steps.registry.outputs.image_exists == 'true') && (github.event.inputs.force_rebuild == 'true'))
         run: |
           SUMMARY=$'Rebuilding image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} is forced.'
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
