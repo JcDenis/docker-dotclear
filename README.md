@@ -285,13 +285,13 @@ To upgrade Dotclear to next version it is recommanded to pull latest image and r
 or use Dotclear buitin update system but themes wiil not be updated.
 
 
-### 4. TODO
+## 4. TODO
 
 * Add better cache management. From another container or from Dotclear container.
 * Add mail support.
 
 
-### 5. SECURITY
+## 5. SECURITY
 
 * Nginx master process runs as root and set uid/gid to user www
 * PHP-FPM master process runs as root and set uid/gid to user www
@@ -301,19 +301,43 @@ or use Dotclear buitin update system but themes wiil not be updated.
 For security report see [SECURITY file](/SECURITY.md) or open a ticket on github repository.
 
 
-### 6. CONTRIBUTING
+## 6. CONTRIBUTING
 
 This image is an open source project. If you'd like to contribute, please read the [CONTRIBUTING file](/CONTRIBUTING.md).
 You can submit a pull request, or feel free to use any other way you'd prefer.
 
 
-### 7. LICENSE
+## 7. LICENSES
 
-Copyright Jean-Christian Paul Denis
-AGPL-v3 <https://www.gnu.org/licenses/agpl-3.0.html>
+Many licenses are involved in there, from files in repository to those from softwares used in final Docker image.
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Dotclear software is licensed under AGPL-3, Copyright Olivier Meunier & Association Dotclear
+### 7.1 DOCKER-DOTCLEAR REPOSITORY FILES
+
+All files in docker-dotclear repository are licensed under AGPL-3, Copyright (c) Jean-Christian Paul Denis.
+
+    Copyright (c) Jean-Christian Paul Denis
+    AGPL-v3 <https://www.gnu.org/licenses/agpl-3.0.html>
+    This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+    You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+### 7.2 LINUX ALPINE
+
+Linux Alpine operating system in these final Docker images is licensed under MIT License, Copyright (c) 2019 Natanael Copa.
+
+
+### 7.3 NGINX
+
+NGINX web server in these final Docker images is licensed under 2-clause BSD-like license, Copyright (c) 2002-2021 Igor Sysoev, 2011-2024 Nginx, Inc.
+
+
+### 7.4 PHP
+
+PHP hypertext preprocessor in these final Docker images is licensed under the PHP License v3.01, copyright (c) the PHP Group.
+
+
+### 7.5 DOTCLEAR
+
+Dotclear software present in these final Docker images is licensed under AGPL-v3, Copyright (c) Olivier Meunier & Association Dotclear.
