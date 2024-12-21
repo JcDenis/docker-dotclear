@@ -144,7 +144,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Docker Scout
+      - name: Docker Scout stable
         id: docker-scout
         uses: docker/scout-action@v1.16.1
         with:
@@ -154,8 +154,8 @@ jobs:
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker Scout
-        id: docker-scout
+      - name: Docker Scout latest
+        id: docker-scout2
         uses: docker/scout-action@v1.16.1
         with:
           command: environment,quickview,cves,recommendations
