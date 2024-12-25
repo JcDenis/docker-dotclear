@@ -11,9 +11,14 @@
 
 ## 1. THE SHORT WAY
 
-In your futur server, with Docker compose installed, execute:
+In your futur server, with Docker installed, execute:
+
+    docker run -d --name dotclear -p 80:80 -v dotclear:/var/www/dotclear
+
+or with Docker compose installed, execute:
 
     curl -fsSL -o docker-compose.yaml https://raw.githubusercontent.com/JcDenis/docker-dotclear/refs/heads/master/docker-compose.yaml && docker-compose up -d
+
 
 
 ## 2. WHAT IS DOTCLEAR
@@ -69,12 +74,11 @@ Or to build image from unstable canal, from the Dokerfile path, execute:
 Builds should support:
 
 * postgresql and mysql and sqlite database
-* linux/386,linux/amd64,linux/arm64,linux/arm/V7 plateforms
+* linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x (and more) plateforms
 * docker container healthcheck
 
 
 ### 3.3 DOCKER
-
 
 #### 3.3.1 Exemple of a docker compose file with a mariadb database
 
