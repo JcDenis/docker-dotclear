@@ -14,7 +14,7 @@ ARG CANAL stable
 # Set environment variables
 ENV DC_DOCKER_CANAL=$CANAL \
     DC_DOCKER_PHP=php84 \
-    DC_DOCKER_PLUGIN_DOCLEARWATCH=0.9.3 \
+    DC_DOCKER_PLUGIN_DOTCLEARWATCH=0.9.3 \
     DC_DOCKER_PLUGIN_DCLOG=1.7.3 \
     DC_DOCKER_PLUGIN_SYSINFO=10.4 \
     DC_RC_PATH=/var/www/dotclear/config.php \
@@ -120,7 +120,7 @@ COPY www /var/lib/dotclear
 ##
 
 # DotclearWatch
-RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$DC_DOCKER_PLUGIN_DOCLEARWATCH/plugin-DotclearWatch.zip" \
+RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/download/v$DC_DOCKER_PLUGIN_DOTCLEARWATCH/plugin-DotclearWatch.zip" \
     && mkdir -p /var/lib/dotclear/plugins/DotclearWatch \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
     && rm plugin.zip
