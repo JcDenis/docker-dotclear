@@ -1,0 +1,72 @@
+name: Check plugin DotclearWatch
+
+on:
+  schedule:
+  - cron: '15 23 * * *'
+  workflow_dispatch:
+
+env:
+  PLUGIN_NAME: DotclearWatch
+  PLUGIN_REPO: jcdenis/DotclearWatch
+  PLUGIN_ENV: DC_DOCKER_PLUGIN_DOTCLEARWATCH
+
+jobs:
+  version:
+    name: Check versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      distant: ${{ steps.distant.outputs.version }}
+      local: ${{ steps.local.outputs.version }}
+    steps:
+      - name: Read distant version
+        id: repository
+        uses: oprypin/find-latest-tag@v1.1.2
+        with:
+          repository: ${{ env.PLUGIN_REPO }}
+          prefix: 'v'
+      - name: Parse distant version
+        id: distant
+        run: |
+          version=${{ steps.repository.outputs.tag }}
+          echo "version=${version:1}" >> $GITHUB_OUTPUT
+      - name: Check out local repository
+        uses: actions/checkout@v4
+      - name: Parse local version
+        id: local
+        run: |
+          version=$(sed -n "s/\s*${{ env.PLUGIN_ENV }}=\(.*\)\s\(.*\)/\1/p" ./Dockerfile)
+          echo "version=${version}" >> $GITHUB_OUTPUT
+      - name: Summary
+        run: |
+          echo '* Distant: ${{ steps.distant.outputs.version }}' >> $GITHUB_STEP_SUMMARY
+          echo '* Local: ${{ steps.local.outputs.version }}' >> $GITHUB_STEP_SUMMARY
+
+  update:
+    needs: version
+    name: Update dockerfile
+    if: (needs.version.outputs.distant != needs.version.outputs.local)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Set message
+        id: message
+        run: |
+          message=$'Bump ${{ env.PLUGIN_NAME }} from ${{ needs.version.outputs.local }} to ${{ needs.version.outputs.distant }}'
+          echo "message=${message}" >> $GITHUB_OUTPUT
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Edit file
+        run: |
+          sed -i "s/${{ env.PLUGIN_ENV }}=${{ needs.version.outputs.local }}/${{ env.PLUGIN_ENV }}=${{ needs.version.outputs.distant }}/g" ./Dockerfile
+      - name: Commit change
+        uses: EndBug/add-and-commit@v9.1.4
+        with:
+          default_author: github_actions
+          message: ${{ steps.message.outputs.message }}
+      - name: summary
+        run: echo '* ${{ steps.message.outputs.message }}' >> $GITHUB_STEP_SUMMARY
