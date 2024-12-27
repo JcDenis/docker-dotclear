@@ -19,6 +19,7 @@ jobs:
     outputs:
       distant: ${{ steps.distant.outputs.version }}
       local: ${{ steps.local.outputs.version }}
+      newer: ${{ steps.compare.outputs.newer }}
     steps:
       - name: Read distant version
         id: repository
@@ -37,15 +38,24 @@ jobs:
         run: |
           version=$(sed -n "s/\s*${{ env.PLUGIN_ENV }}=\(.*\)\s\(.*\)/\1/p" ./Dockerfile)
           echo "version=${version}" >> $GITHUB_OUTPUT
-      - name: Summary
+      - name: Compare version
+        id: compare
         run: |
           echo '* Distant: ${{ steps.distant.outputs.version }}' >> $GITHUB_STEP_SUMMARY
           echo '* Local: ${{ steps.local.outputs.version }}' >> $GITHUB_STEP_SUMMARY
+          function version { echo "$@" | awk -F. '{ printf("%d%04d%03d\n", $1,$2,$3); }'; }
+          if [ $(version '${{ steps.distant.outputs.version }}') -gt $(version '${{ steps.local.outputs.version }}') ]; then
+          echo '* Plugin ${{ env.PLUGIN_NAME }} has newer version ${{ steps.message.outputs.message }}' >> $GITHUB_STEP_SUMMARY
+          echo "newer=true" >> $GITHUB_OUTPUT
+          else
+          echo '* Plugin ${{ env.PLUGIN_NAME }} is up to date' >> $GITHUB_STEP_SUMMARY
+          echo "newer=false" >> $GITHUB_OUTPUT
+          fi
 
   update:
     needs: version
     name: Update dockerfile
-    if: (needs.version.outputs.distant != needs.version.outputs.local)
+    if: (needs.version.outputs.newer == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: write
