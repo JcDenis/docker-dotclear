@@ -1,0 +1,56 @@
+{{tpl:extends parent="__layout.html"}}
+<tpl:Block name="head-title">
+  <title>{{tpl:lang Login}}</title>
+</tpl:Block>
+
+<tpl:Block name="meta-entry">
+  <meta name="author" content="{{tpl:BlogEditor encode_html="1"}}" />
+  <meta name="date" content="{{tpl:BlogUpdateDate iso8601="1"}}" />
+</tpl:Block>
+
+<tpl:Block name="head-linkrel">
+  <link rel="contents" href="{{tpl:BlogArchiveURL}}" title="{{tpl:lang Archives}}" />
+  <link rel="meta" type="application/xbel+xml" title="Blogroll" href="{{tpl:BlogrollXbelLink}}" />
+</tpl:Block>
+
+<tpl:Block name="body-tag">
+  <body class="dc-home dc-login">
+</tpl:Block>
+
+<tpl:Block name="main-content">
+  <header id="content-info">
+  	<h2>{{tpl:lang Connexion}}</h2>
+		<tpl:FrontendSessionIsAuth true="1">
+			<p>{{tpl:lang Welcome}} {{tpl:FrontendSessionDisplayName}}</p>
+			<p><a href="{{tpl:FrontendSessionUrl logout="1"}}">{{tpl:lang Logout}}</a></p>
+		</tpl:FrontendSessionIsAuth>
+		<tpl:FrontendSessionIsAuth true="0">
+			<div>{{tpl:FrontendSessionDisconnected}}</div>
+		</tpl:FrontendSessionIsAuth>
+  </header>
+  <div class="content-inner">
+		<tpl:FrontendSessionIsAuth true="1">
+			<div>{{tpl:FrontendSessionConnected}}</div>
+		</tpl:FrontendSessionIsAuth>
+	<tpl:FrontendSessionIsAuth true="0">
+		<div class="login">
+			<form method="post" name="{{tpl:FrontendSessionID}}_form" id="{{tpl:FrontendSessionID}}_page_form" action="{{tpl:FrontendSessionUrl}}">
+			<tpl:SysIfFormError>
+			<p class="erreur">{{tpl:SysFormError}}</p>
+			</tpl:SysIfFormError>
+			<p>
+				<label for="{{tpl:FrontendSessionID}}_login" class="required">{{tpl:lang Login:}}</label><br />
+				<input type="text" id="{{tpl:FrontendSessionID}}_page_login" name="{{tpl:FrontendSessionID}}_login" value="" />
+			</p>
+			<p>
+				<label for="{{tpl:FrontendSessionID}}_password" class="required">{{tpl:lang Password:}}</label><br />
+				<input type="password" id="{{tpl:FrontendSessionID}}_page_password" name="{{tpl:FrontendSessionID}}_password" value="" />
+			</p>
+			<p>
+				<input class="submit" type="submit" id="{{tpl:FrontendSessionID}}_page_submit" name="{{tpl:FrontendSessionID}}_submit" value="{{tpl:lang Start to share}}" />
+			</p>
+			</form>
+		</div>
+	</tpl:FrontendSessionIsAuth>
+  </div> <!-- # End #content-inner -->
+</tpl:Block>
