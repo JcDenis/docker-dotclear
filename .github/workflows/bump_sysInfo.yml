@@ -2,7 +2,7 @@ name: Check plugin sysInfo
 
 on:
   schedule:
-  - cron: '35 23 * * *'
+  - cron: '35 2 * * *'
   workflow_dispatch:
 
 env:

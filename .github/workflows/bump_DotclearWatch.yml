@@ -2,7 +2,7 @@ name: Check plugin DotclearWatch
 
 on:
   schedule:
-  - cron: '15 23 * * *'
+  - cron: '15 2 * * *'
   workflow_dispatch:
 
 env:

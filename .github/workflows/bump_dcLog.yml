@@ -2,7 +2,7 @@ name: Check plugin dcLog
 
 on:
   schedule:
-  - cron: '25 23 * * *'
+  - cron: '25 2 * * *'
   workflow_dispatch:
 
 env:
