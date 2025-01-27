@@ -13,7 +13,7 @@
 
 In your futur server, with Docker installed, execute:
 
-    docker run -d --name dotclear -p 80:80 -v dotclear:/var/www/dotclear
+    docker run -d --name dotclear -p 80:80 -v dotclear:/var/www/dotclear jcpd/docker-dotclear
 
 or with Docker compose installed, execute:
 
