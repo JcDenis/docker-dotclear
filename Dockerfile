@@ -59,6 +59,8 @@ COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
 # Fix vuln alpine 3.21.0 : curl 8.11.0-r2 => 8.11-r0
 #RUN apk upgrade curl
+# Fix vuln alpine 3.21.2 : openssl 3.3.2 => 3.3.2-r5
+RUN apk upgrade openssl
 
 
 ##
