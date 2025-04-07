@@ -14,7 +14,7 @@ ARG CANAL stable
 # Set environment variables
 ENV DC_DOCKER_CANAL=$CANAL \
     DC_DOCKER_PHP=php84 \
-    DC_DOCKER_PLUGIN_DOTCLEARWATCH=0.9.4 \
+    DC_DOCKER_PLUGIN_DOTCLEARWATCH=1.0 \
     DC_DOCKER_PLUGIN_DCLOG=1.7.4 \
     DC_DOCKER_PLUGIN_SYSINFO=12.0 \
     DC_RC_PATH=/var/www/dotclear/config.php \
