@@ -152,7 +152,7 @@ jobs:
 
       - name: Docker Scout stable
         id: docker-scout
-        uses: docker/scout-action@v1.17.0
+        uses: docker/scout-action@v1.17.1
         with:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Docker Scout latest
         id: docker-scout2
-        uses: docker/scout-action@v1.17.0
+        uses: docker/scout-action@v1.17.1
         with:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:latest
