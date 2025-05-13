@@ -17,6 +17,7 @@ ENV DC_DOCKER_CANAL=$CANAL \
     DC_DOCKER_PLUGIN_DOTCLEARWATCH=1.0 \
     DC_DOCKER_PLUGIN_DCLOG=1.7.4 \
     DC_DOCKER_PLUGIN_SYSINFO=12.5 \
+    DC_DOCKER_PLUGIN_TEMPLATEHELPER=1.8 \
     DC_RC_PATH=/var/www/dotclear/config.php \
     DC_PLUGINS_ROOT=/var/www/dotclear/plugins \
     DC_TPL_CACHE=/var/www/dotclear/cache \
@@ -128,6 +129,12 @@ RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/DotclearWatch/releases/
 # dcLog
 RUN curl -fsSL -o plugin.zip "https://github.com/JcDenis/dcLog/releases/download/v$DC_DOCKER_PLUGIN_DCLOG/plugin-dcLog.zip" \
     && mkdir -p /var/lib/dotclear/plugins/dcLog \
+    && unzip -d /var/lib/dotclear/plugins plugin.zip \
+    && rm plugin.zip
+
+# TemplateHelper
+RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/TemplateHelper/releases/download/$DC_DOCKER_PLUGIN_TEMPLATEHELPER/plugin-TemplateHelper-$DC_DOCKER_PLUGIN_TEMPLATEHELPER.zip" \
+    && mkdir -p /var/lib/dotclear/plugins/TemplateHelper \
     && unzip -d /var/lib/dotclear/plugins plugin.zip \
     && rm plugin.zip
 
