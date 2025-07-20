@@ -6,7 +6,7 @@
 ##
 
 # Use fix Alpine docker release
-FROM alpine:3.21.3
+FROM alpine:3.22.1
 
 # Select Dotclear release canal (stable | unstable)
 ARG CANAL stable
@@ -59,7 +59,7 @@ COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
 # Fix vuln alpine 3.21.2
-RUN apk upgrade --no-cache --update openssl musl
+#RUN apk upgrade --no-cache --update openssl musl
 
 
 ##
