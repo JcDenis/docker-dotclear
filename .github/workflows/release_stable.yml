@@ -84,7 +84,7 @@ jobs:
     steps:
       - name: Check out the repo
         if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true'))
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create repository branch
         if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true'))
@@ -108,7 +108,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.check_image.outputs.version }}
 
