@@ -84,7 +84,6 @@ RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-intl \
     ${DC_DOCKER_PHP}-json \
     ${DC_DOCKER_PHP}-mbstring \
-    ${DC_DOCKER_PHP}-iconv \
     ${DC_DOCKER_PHP}-gettext \
     ${DC_DOCKER_PHP}-mysqli \
     ${DC_DOCKER_PHP}-pgsql \
