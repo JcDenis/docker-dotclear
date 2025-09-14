@@ -92,7 +92,9 @@ RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-xml \
     ${DC_DOCKER_PHP}-simplexml \
     ${DC_DOCKER_PHP}-zip \
-    ${DC_DOCKER_PHP}-pdo_sqlite
+    ${DC_DOCKER_PHP}-pdo_sqlite \
+    ${DC_DOCKER_PHP}-pdo_mysql \
+    ${DC_DOCKER_PHP}-pdo_pgsql
 
 # Copy PHP configuration
 COPY etc/${DC_DOCKER_CANAL}-php.ini /etc/${DC_DOCKER_PHP}/php.ini
