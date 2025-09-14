@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Dotclear\Plugin\DockerDotclear;
 
 use Dotclear\App;
-use Dotclear\Core\Process;
 use Dotclear\Database\Statement\UpdateStatement;
 use Dotclear\Helper\Network\Http;
+use Dotclear\Helper\Process\TraitProcess;
 use Exception;
 
 /**
@@ -17,8 +17,10 @@ use Exception;
  * @copyright   Jean-Christian Paul Denis
  * @copyright   AGPL-3.0
  */
-class Install extends Process
+class Install
 {
+    use TraitProcess;
+
     public static function init(): bool
     {
         return self::status(My::checkContext(My::INSTALL));

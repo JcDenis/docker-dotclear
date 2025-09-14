@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Dotclear\Plugin\DockerDotclear;
 
 use Dotclear\App;
-use Dotclear\Core\Process;
 use Dotclear\Database\Cursor;
-use Dotclear\Interface\Core\BlogSettingsInterface;
 use Dotclear\Helper\File\Files;
+use Dotclear\Helper\Process\TraitProcess;
+use Dotclear\Interface\Core\BlogSettingsInterface;
 
 /**
  * @brief   The module backend process.
@@ -17,8 +17,10 @@ use Dotclear\Helper\File\Files;
  * @copyright   Jean-Christian Paul Denis
  * @copyright   AGPL-3.0
  */
-class Backend extends Process
+class Backend
 {
+    use TraitProcess;
+
     public static function init(): bool
     {
         return self::status(My::checkContext(My::BACKEND));

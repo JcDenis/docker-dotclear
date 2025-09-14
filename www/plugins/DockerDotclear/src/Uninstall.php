@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dotclear\Plugin\DockerDotclear;
 
-use Dotclear\Core\Process;
+use Dotclear\Helper\Process\TraitProcess;
 use Dotclear\Plugin\Uninstaller\Uninstaller;
 
 /**
@@ -14,8 +14,10 @@ use Dotclear\Plugin\Uninstaller\Uninstaller;
  * @copyright   Jean-Christian Paul Denis
  * @copyright   AGPL-3.0
  */
-class Uninstall extends Process
-{
+class Uninstall
+{;
+    use TraitProcess;
+
     public static function init(): bool
     {
         return self::status(My::checkContext(My::UNINSTALL));

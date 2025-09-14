@@ -17,5 +17,5 @@ $this->registerModule(
     'DockerDotclear',
     'Helpers for dotclear docker image',
     'Jean-Christian Paul Denis',
-    '2.32.20241123'
+    '2.36.20250914'
 );
