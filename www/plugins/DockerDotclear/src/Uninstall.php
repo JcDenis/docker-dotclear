@@ -15,7 +15,7 @@ use Dotclear\Plugin\Uninstaller\Uninstaller;
  * @copyright   AGPL-3.0
  */
 class Uninstall
-{;
+{
     use TraitProcess;
 
     public static function init(): bool
