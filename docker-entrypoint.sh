@@ -67,12 +67,12 @@ cp -rf /var/www/dotclear/app/themes/* /var/www/dotclear/themes
 # DEBUG mode for non stable releases
 if [ "$DC_DOCKER_CANAL" == "stable" ]; then
 	echo >&2 "Disabling Dotclear DEBUG mode"
-	sed -i -e "s/'DC_DEBUG', true/'DC_DEBUG', false/g" /var/www/dotclear/app/src/Config.php
+	sed -i -e "s/'DC_DEBUG', true/'DC_DEBUG', false/g" /var/www/dotclear/app/src/Core/Config.php
 else
 	echo >&2 "Enabling Dotclear DEBUG mode and DEV mode"
-	sed -i -e "s/'DC_DEBUG', false/'DC_DEBUG', true/g" /var/www/dotclear/app/src/Config.php
-	sed -i -e "s/ elseif (DC_DEBUG/ if (DC_DEBUG/g" /var/www/dotclear/app/src/Config.php
-	sed -i -e "s/'DC_DEV', false/'DC_DEV', true/g" /var/www/dotclear/app/src/Config.php
+	sed -i -e "s/'DC_DEBUG', false/'DC_DEBUG', true/g" /var/www/dotclear/app/src/Core/Config.php
+	sed -i -e "s/ elseif (DC_DEBUG/ if (DC_DEBUG/g" /var/www/dotclear/app/src/Core/Config.php
+	sed -i -e "s/'DC_DEV', false/'DC_DEV', true/g" /var/www/dotclear/app/src/Core/Config.php
 fi
 
 # Various cleanup. Sorry not sorry.
