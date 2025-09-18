@@ -106,8 +106,8 @@ COPY etc/php-fpm.conf /etc/${DC_DOCKER_PHP}/php-fpm.d/www.conf
 ##
 
 # Download latest Dotclear version
-RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
-    && curl -fsSL -o dotclear.zip $(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@href" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') \
+RUN curl --insecure -o versions.xml "http://download.dotclear.org/versions.xml" \
+    && curl --insecure -o dotclear.zip $(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@href" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') \
     && echo "$(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@checksum" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') dotclear.zip" | md5sum -c - \
     && mkdir -p /usr/src/dotclear \
     && unzip -d /usr/src dotclear.zip \
