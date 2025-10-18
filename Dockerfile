@@ -58,17 +58,10 @@ COPY etc/snippets_subfolder.conf /etc/nginx/snippets/snippets_subfolder.conf
 COPY etc/snippets_subdomain.conf /etc/nginx/snippets/snippets_subdomain.conf
 COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
-# Fix vuln alpine 3.22.1
-#RUN apk upgrade --no-cache --update unzip tar busybox
-
 
 ##
 # PHP
 ##
-
-# Try to bypass Alpine Linux iconv bug
-RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community/ gnu-libiconv=1.15-r2
-ENV LD_PRELOAD=/usr/lib/preloadable_libiconv.so
 
 # Install PHP required packages
 RUN apk add --no-cache --update \
