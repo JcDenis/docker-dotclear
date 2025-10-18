@@ -149,6 +149,9 @@ RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/do
 # END
 ##
 
+# Remove vuln packages
+Run apk del unzip
+
 # Fix ownership
 RUN chown -R www:www /var/lib/dotclear /usr/src/dotclear
 
