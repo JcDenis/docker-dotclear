@@ -44,7 +44,7 @@ RUN adduser -D -g 'www' www
 RUN apk add --no-cache --update \
     nginx \
     curl \
-    tar \
+#    tar \
     unzip \
     libxml2-utils
 

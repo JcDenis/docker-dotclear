@@ -44,7 +44,8 @@ if ! [ -e index.php -a -e src/App.php ]; then
 		( set -x; ls -A; sleep 5 )
 	fi
 	echo >&2 "Copying Dotclear files..."
-	tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
+	#tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
+	cp -rf /usr/src/dotclear/* /var/www/dotclear
 	echo >&2 "Complete! Dotclear has been successfully copied to $(pwd)"
 else
 	# Check if Dotclear needs upgrade
@@ -53,7 +54,8 @@ else
 	echo >&2 "Dotclear ${VERSION_VOLUME} found in $(pwd), checking upgrade..."
 	if [ $(version $COMPARE_IMAGE) -gt $(version $COMPARE_VOLUME) ]; then
 		echo >&2 "Upgrading Dotclear files from ${VERSION_VOLUME} to ${VERSION_IMAGE}, please wait..."
-		tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
+		#tar cf - --one-file-system -C /usr/src/dotclear . | tar xf -
+		cp -rf /usr/src/dotclear/* /var/www/dotclear
 		echo >&2 "Complete! Dotclear files have been successfully upgraded to ${VERSION_IMAGE}"
 	else
 		echo >&2 "No need to upgrade Dotclear ${VERSION_IMAGE}"
