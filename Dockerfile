@@ -6,14 +6,14 @@
 ##
 
 # Use fix Alpine docker release
-FROM alpine:3.22.2
+FROM alpine:3.23.0
 
 # Select Dotclear release canal (stable | unstable)
 ARG CANAL stable
 
 # Set environment variables
 ENV DC_DOCKER_CANAL=$CANAL \
-    DC_DOCKER_PHP=php84 \
+    DC_DOCKER_PHP=php85 \
     DC_DOCKER_PLUGIN_DOTCLEARWATCH=1.1.1 \
     DC_DOCKER_PLUGIN_DCLOG=1.8.1 \
     DC_DOCKER_PLUGIN_SYSINFO=14.21 \
@@ -41,10 +41,10 @@ RUN adduser -D -g 'www' www
 ##
 
 # Install required package
-RUN apk add --no-cache --update \
+RUN apk update && apk upgrade
+RUN apk add \
     nginx \
     curl \
-#    tar \
     unzip \
     libxml2-utils
 
@@ -66,7 +66,6 @@ COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 # Install PHP required packages
 RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-common \
-    ${DC_DOCKER_PHP}-cli \
     ${DC_DOCKER_PHP}-fpm \
     ${DC_DOCKER_PHP}-session \
     ${DC_DOCKER_PHP}-curl \
@@ -75,12 +74,10 @@ RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-exif \
     ${DC_DOCKER_PHP}-tidy \
     ${DC_DOCKER_PHP}-intl \
-    ${DC_DOCKER_PHP}-json \
     ${DC_DOCKER_PHP}-mbstring \
     ${DC_DOCKER_PHP}-gettext \
     ${DC_DOCKER_PHP}-mysqli \
     ${DC_DOCKER_PHP}-pgsql \
-    ${DC_DOCKER_PHP}-opcache \
     ${DC_DOCKER_PHP}-dom \
     ${DC_DOCKER_PHP}-xml \
     ${DC_DOCKER_PHP}-simplexml \
