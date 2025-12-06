@@ -6,7 +6,7 @@
 ##
 
 # Use fix Alpine docker release
-FROM alpine:3.22.2
+FROM alpine:3.23.0
 
 # Select Dotclear release canal (stable | unstable)
 ARG CANAL stable
@@ -41,10 +41,10 @@ RUN adduser -D -g 'www' www
 ##
 
 # Install required package
-RUN apk add --no-cache --update \
+RUN apk update && apk upgrade
+RUN apk add \
     nginx \
     curl \
-#    tar \
     unzip \
     libxml2-utils
 
@@ -66,7 +66,6 @@ COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 # Install PHP required packages
 RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-common \
-    ${DC_DOCKER_PHP}-cli \
     ${DC_DOCKER_PHP}-fpm \
     ${DC_DOCKER_PHP}-session \
     ${DC_DOCKER_PHP}-curl \
@@ -75,7 +74,6 @@ RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-exif \
     ${DC_DOCKER_PHP}-tidy \
     ${DC_DOCKER_PHP}-intl \
-    ${DC_DOCKER_PHP}-json \
     ${DC_DOCKER_PHP}-mbstring \
     ${DC_DOCKER_PHP}-gettext \
     ${DC_DOCKER_PHP}-mysqli \
