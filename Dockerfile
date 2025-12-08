@@ -140,6 +140,9 @@ RUN curl -fsSL -o plugin.zip "https://github.com/franck-paul/sysInfo/releases/do
 # END
 ##
 
+# Fix current vuln packages
+RUN apk upgrade --no-cache --update libpng
+
 # Remove vuln packages
 RUN apk del unzip
 
