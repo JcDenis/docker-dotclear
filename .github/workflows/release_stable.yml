@@ -138,7 +138,7 @@ jobs:
           REPO: '${{ github.repository }}'
 
       - name: Build and push images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           sbom: true
