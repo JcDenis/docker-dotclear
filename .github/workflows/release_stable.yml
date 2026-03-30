@@ -67,7 +67,7 @@ jobs:
 
       - name: Check repository branch
         id: branch
-        uses: GuillaumeFalourd/branch-exists@v1.1
+        uses: GuillaumeFalourd/branch-exists@v1.2
         with:
           branch: ${{ steps.dotclear.outputs.tag }}
 
