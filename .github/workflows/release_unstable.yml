@@ -63,7 +63,7 @@ jobs:
 
       - name: Docker Scout
         id: docker-scout
-        uses: docker/scout-action@v1.20.3
+        uses: docker/scout-action@v1.20.4
         with:
           command: environment,quickview,cves,recommendations
           image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:dev
