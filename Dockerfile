@@ -6,7 +6,7 @@
 ##
 
 # Use fix Alpine docker release
-FROM alpine:3.23.3
+FROM alpine:3.23.4
 
 # Select Dotclear release canal (stable | unstable)
 ARG CANAL stable
