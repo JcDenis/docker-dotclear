@@ -8,7 +8,7 @@ on:
 env:
   PLUGIN_NAME: TemplateHelper
   PLUGIN_REPO: franck-paul/TemplateHelper
-  PLUGIN_ENV: DC_DOCKER_PLUGIN_TEMPLATE_HELPER
+  PLUGIN_ENV: DC_DOCKER_PLUGIN_TEMPLATEHELPER
 
 jobs:
   version:
