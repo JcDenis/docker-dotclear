@@ -65,6 +65,7 @@ COPY etc/snippets_common.conf /etc/nginx/snippets/snippets_common.conf
 
 # Install PHP required packages
 RUN apk add --no-cache --update \
+    ${DC_DOCKER_PHP} \
     ${DC_DOCKER_PHP}-common \
     ${DC_DOCKER_PHP}-fpm \
     ${DC_DOCKER_PHP}-session \
