@@ -95,7 +95,7 @@ echo >&2 '┌──'
 echo >&2 "│ Summary: "
 echo >&2 "│ ◦ Alpine $(cat /etc/alpine-release)"
 echo >&2 "│ ◦ Nginx $(nginx -v 2>&1 | sed 's/nginx version: nginx\///')"
-echo >&2 "│ ◦ PHP $(php85 -r "echo PHP_VERSION;")"
+echo >&2 "│ ◦ PHP $(${DC_DOCKER_PHP} -r "echo PHP_VERSION;")"
 echo >&2 "│ ◦ Dotclear ${VERSION_INSTALLED}"
 echo >&2 '└──'
 

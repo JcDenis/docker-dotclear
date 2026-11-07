@@ -50,9 +50,18 @@ class Install
                 $blog_settings->get('system')->put('url_scan', 'path_info');
 
                 # Fix default blog URL
-                $cur            = App::blog()->openBlogCursor();
-                $cur->blog_url  = Http::getHost() . '/' . $blog_id . '/';
-                $sql            = new UpdateStatement();
+                $host = Http::getHost();
+                if (is_string(parse_url($host, PHP_URL_HOST))) {
+                    // From web install
+                    $blog_url = $host . '/' . $blog_id . '/';
+                } else {
+                    // From command line install, host is unknown: keep given URL in path info mode
+                    $blog_url = (string) App::blogs()->getBlog($blog_id)->f('blog_url');
+                    $blog_url = rtrim((string) preg_replace('#/?index\.php\?$#', '', $blog_url), '/') . '/';
+                }
+                $cur           = App::blog()->openBlogCursor();
+                $cur->blog_url = $blog_url;
+                $sql           = new UpdateStatement();
                 $sql
                     ->where('blog_id ' . $sql->in($blog_id))
                     ->update($cur);
