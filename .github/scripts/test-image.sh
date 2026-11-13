@@ -77,7 +77,7 @@ function install {
   for step in 1 2; do
     echo "Dotclear installation, step ${step}"
     docker exec -u www -w /var/www/dotclear/app "$NAME" sh -c "\"\$DC_DOCKER_PHP\" admin/install/index.php -n \
-      --dbdriver=sqlite \
+      --dbdriver=pdosqlite \
       --dbname=/var/www/dotclear/sqlite.db \
       --adminemail=test@example.com \
       --uemail=test@example.com \
