@@ -91,8 +91,27 @@ function install {
   done
 }
 
+function login {
+  # Log in to the administration: Dotclear upgrades its database and installs
+  # the plugins of the image on the first administration page of a user.
+  local jar auth code page
+  jar=$(mktemp)
+  auth=$(curl -sS -o /dev/null -L --max-redirs 5 -c "$jar" -w '%{url_effective}' "${URL}/admin/" || true)
+  code=$(curl -sS -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code}' \
+    --data-urlencode 'user_id=tester' --data-urlencode 'user_pwd=Dotclear-test-1' "$auth" || true)
+  page=$(curl -sS -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code} %{url_effective}' "${URL}/admin/" || true)
+  rm -f "$jar"
+  echo "Login => HTTP ${code}, administration => ${page}"
+  if [ "$code" != "200" ] || [ "${page%% *}" != "200" ] || echo "$page" | grep -qi 'auth'; then
+    echo "::error::Login to Dotclear administration failed"
+    docker logs "$NAME" 2>&1 | tail -n 40 || true
+    exit 1
+  fi
+}
+
 function check_blog {
   expect_ok /admin/
+  login
   expect_ok /default/
 }
 
