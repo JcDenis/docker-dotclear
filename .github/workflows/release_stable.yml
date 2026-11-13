@@ -51,8 +51,9 @@ jobs:
         id: published
         run: |
           curl -fsSL --retry 3 -o versions.xml https://download.dotclear.org/versions.xml || true
+          # If several stable releases are listed, the highest version is used
           function attribute {
-            python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get(sys.argv[1], "") for r in ET.parse("versions.xml").getroot().iter("release") if r.get("name") == "stable"), ""))' "$1" 2> /dev/null || true
+            python3 -c 'import re, sys, xml.etree.ElementTree as ET; r = [x for x in ET.parse("versions.xml").getroot().iter("release") if x.get("name") == "stable"]; r.sort(key=lambda x: [int(n) for n in re.findall("[0-9]+", x.get("version", ""))]); print(r[-1].get(sys.argv[1], "") if r else "")' "$1" 2> /dev/null || true
           }
           version=$(attribute version)
           url=$(attribute href)

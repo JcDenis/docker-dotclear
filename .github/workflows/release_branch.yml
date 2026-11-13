@@ -32,7 +32,7 @@ jobs:
             echo "Image is built with Dotclear archive ${archive}." >> "$GITHUB_STEP_SUMMARY"
           elif echo "$GITHUB_REF_NAME" | grep -Eq '^[0-9][0-9.]*$'; then
             function normalize { echo "$1" | sed -E 's/(\.0)+$//'; }
-            published=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get("version", "") for r in ET.parse(sys.stdin).getroot().iter("release") if r.get("name") == "stable"), ""))' || true)
+            published=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import re, sys, xml.etree.ElementTree as ET; r = [x for x in ET.parse(sys.stdin).getroot().iter("release") if x.get("name") == "stable"]; r.sort(key=lambda x: [int(n) for n in re.findall("[0-9]+", x.get("version", ""))]); print(r[-1].get("version", "") if r else "")' || true)
             if [ -z "$published" ]; then
               echo "::error::Published Dotclear stable version not found, cannot check branch ${GITHUB_REF_NAME}"
               exit 1
