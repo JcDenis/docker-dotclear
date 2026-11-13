@@ -68,7 +68,12 @@ function expect_ok {
   echo "GET $1 => HTTP ${code}"
   if [ "$code" != "200" ]; then
     echo "::error::Unexpected HTTP code ${code} for $1"
-    docker logs "$NAME" 2>&1 | tail -n 40 || true
+    echo "--- Response"
+    curl -sS -i "${URL}$1" 2>&1 | head -n 30 || true
+    echo "--- DEBUG database"
+    docker exec "$NAME" sh -c '"$DC_DOCKER_PHP" -r "\$p=new PDO(\"sqlite:/var/www/dotclear/sqlite.db\"); foreach ([\"select blog_id,blog_url,blog_status from dc_blog\",\"select module,version from dc_version\",\"select setting_id,blog_id,setting_value from dc_setting where setting_id in (\\\"url_scan\\\",\\\"public_path\\\",\\\"themes_path\\\",\\\"public_url\\\")\"] as \$q) { foreach (\$p->query(\$q) as \$r) { echo implode(\" | \", array_unique(\$r)), PHP_EOL; } }"' 2>&1 | grep -v Deprecated | head -n 60 || true
+    echo "--- Container logs"
+    docker logs "$NAME" 2>&1 | grep -v Deprecated | tail -n 20 || true
     exit 1
   fi
 }
@@ -101,6 +106,7 @@ function login {
     --data-urlencode 'user_id=tester' --data-urlencode 'user_pwd=Dotclear-test-1' "$auth" || true)
   page=$(curl -sS -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code} %{url_effective}' "${URL}/admin/" || true)
   rm -f "$jar"
+  echo "Login form: ${auth}"
   echo "Login => HTTP ${code}, administration => ${page}"
   if [ "$code" != "200" ] || [ "${page%% *}" != "200" ] || echo "$page" | grep -qi 'auth'; then
     echo "::error::Login to Dotclear administration failed"
