@@ -16,9 +16,15 @@ IMAGE="${1:?image is required}"
 PREVIOUS="${2:-}"
 NAME='dotclear-test'
 VOLUME='dotclear-test'
-# Dotclear redirections do not keep a custom port, container must be on port 80
+# Dotclear redirections do not keep a custom port and blogs by subfolders are
+# served for host "localhost" only: container must be on http://localhost
 PORT=80
-URL='http://127.0.0.1'
+URL='http://localhost'
+
+function web {
+  # localhost by IPv4, published port of the container
+  curl -4 -sS "$@"
+}
 
 function clean {
   docker rm -f "$NAME" > /dev/null 2>&1 || true
@@ -60,7 +66,7 @@ function stop {
 
 function http_code {
   # $1 = path, follows redirections
-  curl -sS -o /dev/null -L --max-redirs 5 -w '%{http_code}' "${URL}$1" || true
+  web -o /dev/null -L --max-redirs 5 -w '%{http_code}' "${URL}$1" || true
 }
 
 function expect_ok {
@@ -71,15 +77,7 @@ function expect_ok {
   if [ "$code" != "200" ]; then
     echo "::error::Unexpected HTTP code ${code} for $1"
     echo "--- Response"
-    curl -sS -i "${URL}$1" 2>&1 | head -n 30 || true
-    echo "--- DEBUG probes"
-    for u in / /default /default/ /index.php /index.php/ /default/index.php/ "/default/?x=1" /default/feed/atom; do
-      echo "$u => $(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "${URL}${u}") | localhost: $(curl -sS -o /dev/null -H 'Host: localhost' -w '%{http_code} %{redirect_url}' "${URL}${u}")"
-    done
-    docker exec "$NAME" sh -c 'echo "<?php var_export([\$_SERVER[\"PATH_INFO\"] ?? null, \$_SERVER[\"DC_BLOG_ID\"] ?? null, \$_SERVER[\"REQUEST_URI\"] ?? null, \$_SERVER[\"SCRIPT_NAME\"] ?? null]);" > /var/www/dotclear/app/zz.php'
-    echo "zz: $(curl -sS "${URL}/default/zz.php/abc") // $(curl -sS "${URL}/zz.php/")"
-    echo "--- DEBUG database"
-    docker exec "$NAME" sh -c '"$DC_DOCKER_PHP" -r "\$p=new PDO(\"sqlite:/var/www/dotclear/sqlite.db\"); foreach ([\"select blog_id,blog_url,blog_status from dc_blog\",\"select module,version from dc_version\",\"select setting_id,blog_id,setting_value from dc_setting where setting_id in (\\\"url_scan\\\",\\\"public_path\\\",\\\"themes_path\\\",\\\"public_url\\\")\"] as \$q) { foreach (\$p->query(\$q) as \$r) { echo implode(\" | \", array_unique(\$r)), PHP_EOL; } }"' 2>&1 | grep -v Deprecated | head -n 60 || true
+    web -i "${URL}$1" 2>&1 | head -n 30 || true
     echo "--- Container logs"
     docker logs "$NAME" 2>&1 | grep -v Deprecated | tail -n 20 || true
     exit 1
@@ -90,9 +88,9 @@ function install {
   # Web installation, as described in README: the configuration wizard uses
   # the environment variables of the container, then the form creates the user
   local page code
-  page=$(curl -sS -o /dev/null -L --max-redirs 5 -w '%{http_code} %{url_effective}' "${URL}/admin/install/index.php" || true)
+  page=$(web -o /dev/null -L --max-redirs 5 -w '%{http_code} %{url_effective}' "${URL}/admin/install/index.php" || true)
   echo "Installation wizard => ${page}"
-  code=$(curl -sS -o /dev/null -L --max-redirs 5 -w '%{http_code}' \
+  code=$(web -o /dev/null -L --max-redirs 5 -w '%{http_code}' \
     --data-urlencode 'u_email=test@example.com' \
     --data-urlencode 'u_firstname=Test' \
     --data-urlencode 'u_name=Test' \
@@ -113,12 +111,11 @@ function login {
   # the plugins of the image on the first administration page of a user.
   local jar auth code page
   jar=$(mktemp)
-  auth=$(curl -sS -o /dev/null -L --max-redirs 5 -c "$jar" -w '%{url_effective}' "${URL}/admin/" || true)
-  code=$(curl -sS -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code}' \
+  auth=$(web -o /dev/null -L --max-redirs 5 -c "$jar" -w '%{url_effective}' "${URL}/admin/" || true)
+  code=$(web -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code}' \
     --data-urlencode 'user_id=tester' --data-urlencode 'user_pwd=Dotclear-test-1' "$auth" || true)
-  page=$(curl -sS -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code} %{url_effective}' "${URL}/admin/" || true)
+  page=$(web -o /dev/null -L --max-redirs 5 -b "$jar" -c "$jar" -w '%{http_code} %{url_effective}' "${URL}/admin/" || true)
   rm -f "$jar"
-  echo "Login form: ${auth}"
   echo "Login => HTTP ${code}, administration => ${page}"
   if [ "$code" != "200" ] || [ "${page%% *}" != "200" ] || echo "$page" | grep -qi 'auth'; then
     echo "::error::Login to Dotclear administration failed"
@@ -137,7 +134,7 @@ docker volume rm -f "$VOLUME" > /dev/null 2>&1 || true
 
 echo "::group::Fresh start of ${IMAGE}"
 start "$IMAGE"
-code=$(curl -sS -o /dev/null -w '%{http_code}' "${URL}/" || true)
+code=$(web -o /dev/null -w '%{http_code}' "${URL}/" || true)
 echo "GET / => HTTP ${code}"
 if [ -z "$code" ] || [ "$code" = "000" ] || [ "$code" -ge 500 ]; then
   echo "::error::Unexpected HTTP code ${code} on fresh start"
