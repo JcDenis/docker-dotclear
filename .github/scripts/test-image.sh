@@ -16,8 +16,9 @@ IMAGE="${1:?image is required}"
 PREVIOUS="${2:-}"
 NAME='dotclear-test'
 VOLUME='dotclear-test'
-PORT=8080
-URL="http://127.0.0.1:${PORT}"
+# Dotclear redirections do not keep a custom port, container must be on port 80
+PORT=80
+URL='http://127.0.0.1'
 
 function clean {
   docker rm -f "$NAME" > /dev/null 2>&1 || true
@@ -76,6 +77,7 @@ function install {
   # Dotclear command line installation needs two runs (configuration, then database)
   for step in 1 2; do
     echo "Dotclear installation, step ${step}"
+    # (installer prints only "1" in non interactive mode)
     docker exec -u www -w /var/www/dotclear/app "$NAME" sh -c "\"\$DC_DOCKER_PHP\" admin/install/index.php -n \
       --dbdriver=pdosqlite \
       --dbname=/var/www/dotclear/sqlite.db \
