@@ -9,7 +9,7 @@
 FROM alpine:3.24.4
 
 # Select Dotclear release canal (stable | unstable)
-ARG CANAL stable
+ARG CANAL=stable
 
 # Set environment variables
 ENV DC_DOCKER_CANAL=$CANAL \
@@ -153,7 +153,7 @@ EXPOSE 80
 WORKDIR /var/www/dotclear/app
 
 # Add container starting script
-ADD docker-entrypoint.sh /entrypoint.sh
+COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 
 # Docker container healthcheck
