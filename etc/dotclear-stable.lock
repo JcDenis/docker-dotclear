@@ -1,0 +1,6 @@
+# Dotclear archive of the stable image.
+# These values are set once by the stable workflow (release_stable.yml)
+# when a version branch is created, they stay empty on master branch:
+# an empty url means "current release announced by Dotclear versions.xml".
+url=
+md5=
