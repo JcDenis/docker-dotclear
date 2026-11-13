@@ -1,0 +1,76 @@
+# Update plugins versions of the Dockerfile on master branch.
+# Only master (dev image) is updated, version branches are not modified.
+name: Check plugins
+
+on:
+  schedule:
+  - cron: '25 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    name: Check plugins versions
+    if: ${{ github.ref_name == 'master' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
+      - name: Check versions and update Dockerfile
+        run: |
+          # name | repository | Dockerfile variable | tag prefix | release archive ({v} = version)
+          plugins='
+          DotclearWatch|JcDenis/DotclearWatch|DC_DOCKER_PLUGIN_DOTCLEARWATCH|v|plugin-DotclearWatch.zip
+          dclog|JcDenis/dcLog|DC_DOCKER_PLUGIN_DCLOG|v|plugin-dcLog.zip
+          sysInfo|franck-paul/sysInfo|DC_DOCKER_PLUGIN_SYSINFO||plugin-sysInfo-{v}.zip
+          TemplateHelper|franck-paul/TemplateHelper|DC_DOCKER_PLUGIN_TEMPLATEHELPER||plugin-TemplateHelper-{v}.zip
+          '
+          git config user.name 'github-actions'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          bumped=0
+          while IFS='|' read -r name repo variable prefix archive; do
+            name=$(echo "$name" | xargs)
+            [ -z "$name" ] && continue
+
+            local_version=$(sed -n "s/^\s*${variable}=\([0-9][0-9.]*\).*/\1/p" Dockerfile)
+            # Only tags made of digits and dots are read, others are ignored
+            distant_version=$(git ls-remote --tags --refs "https://github.com/${repo}.git" | sed -n "s#.*refs/tags/${prefix}\([0-9][0-9.]*\)\$#\1#p" | sort -V | tail -n 1)
+            if [ -z "$local_version" ] || [ -z "$distant_version" ]; then
+              echo "::warning::Plugin ${name}: version not found (local: ${local_version:-none}, distant: ${distant_version:-none})"
+              echo "* ⚠️ ${name}: version not found (local: ${local_version:-none}, distant: ${distant_version:-none})" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            newest=$(printf '%s\n%s\n' "$local_version" "$distant_version" | sort -V | tail -n 1)
+            if [ "$local_version" = "$distant_version" ] || [ "$newest" != "$distant_version" ]; then
+              echo "* ${name} is up to date (local: ${local_version}, distant: ${distant_version})" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            # Release archive must be downloadable, else image build fails
+            url="https://github.com/${repo}/releases/download/${prefix}${distant_version}/${archive//\{v\}/${distant_version}}"
+            if ! curl -fsSL -o /dev/null --retry 3 "$url"; then
+              echo "::warning::Plugin ${name} ${distant_version}: release archive not available yet"
+              echo "* ⚠️ ${name} ${distant_version}: release archive not available yet (${url})" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            sed -i "s/\(${variable}=\)[0-9][0-9.]*/\1${distant_version}/" Dockerfile
+            git commit -q -m "Bump ${name} from ${local_version} to ${distant_version}" Dockerfile
+            bumped=$((bumped + 1))
+            echo "* Bump ${name} from ${local_version} to ${distant_version}" >> "$GITHUB_STEP_SUMMARY"
+          done <<< "$plugins"
+
+          if [ "$bumped" -gt 0 ]; then
+            git push
+          fi

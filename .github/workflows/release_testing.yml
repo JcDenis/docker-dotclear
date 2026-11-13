@@ -5,113 +5,44 @@ on:
   - cron: '15 4 * * *'
   workflow_dispatch:
 
-env:
-  DOTCLEAR_IMAGE: docker-dotclear
-  DOTCLEAR_CANAL: testing
-  DOCKER_NAMESPACE: jcpd
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
-  do_image:
-    name: Build and push testing image
+  # Testing image is built from the branch of the last stable image,
+  # this branch is created by the stable workflow (release_stable.yml)
+  check_branch:
+    name: Find last version branch
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-      attestations: write
-      id-token: write
+    timeout-minutes: 5
+    outputs:
+      branch: ${{ steps.branch.outputs.name }}
     steps:
-      - name: Get last dotclear repository tag
-        id: dotclear
-        uses: oprypin/find-latest-tag@v1
-        with:
-          repository: dotclear/dotclear
-
-      - name: version
+      - name: Get last version branch of this repository
+        id: branch
         run: |
-          SUMMARY=$'Last Dotclear repository tag is ${{ steps.dotclear.outputs.tag }}.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          name=$(git ls-remote --heads "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" | sed -n 's#.*refs/heads/\([0-9][0-9.]*\)$#\1#p' | sort -V | tail -n 1)
+          if [ -z "$name" ]; then
+            echo "::error::No version branch found in this repository"
+            exit 1
+          fi
+          echo "name=${name}" >> "$GITHUB_OUTPUT"
+          echo "Testing image is built from branch ${name}." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Create repository branch
-        id: create
-        uses: peterjgrainger/action-create-branch@v4.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          branch: ${{ steps.dotclear.outputs.tag }}
-
-      - name: notcreated
-        if: (steps.create.outputs.created != 'true')
-        run: |
-          SUMMARY=$'Branch ${{ needs.check_image.outputs.version }} has not been created.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-      - name: created
-        if: (steps.create.outputs.created == 'true')
-        run: |
-          SUMMARY=$' Branch ${{ needs.check_image.outputs.version }} has been created.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-      - name: Check out the repo
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ steps.dotclear.outputs.tag }}
-        
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Log in to Github registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: set lower case github repository
-        run: |
-          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
-        env:
-          REPO: '${{ github.repository }}'
-
-      - name: Build and push image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          sbom: true
-          push: true
-          tags: |
-            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ env.DOTCLEAR_CANAL }}
-            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ env.DOTCLEAR_CANAL }}
-          build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
-          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Docker Scout
-        id: docker-scout
-        uses: docker/scout-action@v1.29.0
-        with:
-          command: environment,quickview,cves,recommendations
-          image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ env.DOTCLEAR_CANAL }}
-          environment: testing
-          organization: ${{ env.DOCKER_NAMESPACE }}
-          write-comment: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Send Telegram Message Ok
-        uses: appleboy/telegram-action@master
-        env:
-          GITHUB_CONTEXT: ${{toJSON(github)}}
-        with:
-          to: ${{ secrets.TELEGRAM_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: Image __${{ env.DOTCLEAR_IMAGE }}:${{ env.DOTCLEAR_CANAL }}__ successfully generated.
+  do_image:
+    needs: check_branch
+    name: Testing image
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      canal: testing
+      ref: ${{ needs.check_branch.outputs.branch }}
+      tags: testing
+      scout_environment: testing

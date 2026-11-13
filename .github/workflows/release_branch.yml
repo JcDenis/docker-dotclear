@@ -3,79 +3,50 @@ name: Build and push image from branch
 on:
   workflow_dispatch:
 
-env:
-  DOTCLEAR_IMAGE: docker-dotclear
-  DOCKER_NAMESPACE: jcpd
+permissions:
+  contents: read
 
 jobs:
-  build_image:
-    if: (github.ref_name != 'master')
-    name: Build and push selected version images
+  check_branch:
+    name: Check selected branch
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-      attestations: write
-      id-token: write
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.check.outputs.tag }}
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.ref_name }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Log in to Github registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: set lower case github repository
+      - name: Check branch
+        id: check
         run: |
-          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
-        env:
-          REPO: '${{ github.repository }}'
+          if [ "$GITHUB_REF_TYPE" != "branch" ] || [ "$GITHUB_REF_NAME" = "master" ]; then
+            echo "::error::This workflow must be launched from a branch other than master"
+            exit 1
+          fi
+          # Dockerfile downloads the current stable release of Dotclear: an old
+          # version branch would give an image with a wrong Dotclear version.
+          if echo "$GITHUB_REF_NAME" | grep -Eq '^[0-9][0-9.]*$'; then
+            function normalize { echo "$1" | sed -E 's/(\.0)+$//'; }
+            published=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get("version", "") for r in ET.parse(sys.stdin).getroot().iter("release") if r.get("name") == "stable"), ""))' || true)
+            if [ -z "$published" ]; then
+              echo "::error::Published Dotclear stable version not found, cannot check branch ${GITHUB_REF_NAME}"
+              exit 1
+            fi
+            if [ "$(normalize "$published")" != "$(normalize "$GITHUB_REF_NAME")" ]; then
+              echo "::error::Branch ${GITHUB_REF_NAME} is not the current Dotclear stable release (${published}), its image would contain Dotclear ${published}"
+              exit 1
+            fi
+          fi
+          # Image tag can not contain a slash
+          echo "tag=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push images
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          sbom: true
-          push: true
-          tags: |
-            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
-            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ github.ref_name }}
-          build-args: CANAL=stable
-          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Docker Scout
-        id: docker-scout
-        uses: docker/scout-action@v1.29.0
-        with:
-          command: environment,quickview,cves,recommendations
-          image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}
-          environment: stable
-          organization: ${{ env.DOCKER_NAMESPACE }}
-          write-comment: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Send Telegram Message Ok
-        uses: appleboy/telegram-action@master
-        env:
-          GITHUB_CONTEXT: ${{toJSON(github)}}
-        with:
-          to: ${{ secrets.TELEGRAM_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: Image __${{ env.DOTCLEAR_IMAGE }}:${{ github.ref_name }}__ successfully generated.
+  build_image:
+    needs: check_branch
+    name: Branch image
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      canal: stable
+      tags: ${{ needs.check_branch.outputs.tag }}
+      scout_environment: stable

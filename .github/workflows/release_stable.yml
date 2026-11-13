@@ -10,177 +10,135 @@ on:
         type: boolean
         required: true
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 env:
   DOTCLEAR_IMAGE: docker-dotclear
-  DOTCLEAR_CANAL: stable
   DOCKER_NAMESPACE: jcpd
 
 jobs:
   check_image:
     name: Check and compare official Dotclear version
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     outputs:
       version: ${{ steps.dotclear.outputs.tag }}
-      has_image: ${{ steps.registry.outputs.image_exists }}
-      has_branch: ${{ steps.branch.outputs.exists }}
+      build: ${{ steps.decide.outputs.build }}
     steps:
       - name: Get last dotclear repository tag
         id: dotclear
-        uses: oprypin/find-latest-tag@v1
-        with:
-          repository: dotclear/dotclear
-
-      - name: version
         run: |
-          SUMMARY=$'Last Dotclear repository tag is ${{ steps.dotclear.outputs.tag }}.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          tag=$(git ls-remote --tags --refs https://github.com/dotclear/dotclear.git | sed -n 's#.*refs/tags/\([0-9][0-9.]*\)$#\1#p' | sort -V | tail -n 1)
+          if [ -z "$tag" ]; then
+            echo "::error::Dotclear repository tag not found"
+            exit 1
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "Last Dotclear repository tag is ${tag}." >> "$GITHUB_STEP_SUMMARY"
+
+      # Dockerfile downloads the stable release announced by versions.xml,
+      # it can be late on the repository tag.
+      - name: Get published Dotclear stable version
+        id: published
+        run: |
+          version=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get("version", "") for r in ET.parse(sys.stdin).getroot().iter("release") if r.get("name") == "stable"), ""))' || true)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Published Dotclear stable version is ${version:-unknown}." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check registry image
         id: registry
-        uses: k4kratik/container-image-check-custom-action@v4
-        with:
-          type: dockerhub
-          container_repo_name: ${{ env.DOTCLEAR_IMAGE }}
-          image_tag: ${{ steps.dotclear.outputs.tag }}
-          dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
-          dockerhub_token: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: notfound
-        if: (steps.registry.outputs.image_exists == 'false')
+        env:
+          TAG: ${{ steps.dotclear.outputs.tag }}
         run: |
-          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} not found.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 3 "https://hub.docker.com/v2/repositories/${DOCKER_NAMESPACE}/${DOTCLEAR_IMAGE}/tags/${TAG}")
+          case "$code" in
+            200) exists=true ;;
+            404) exists=false ;;
+            *) echo "::error::Unexpected Docker Hub response ${code}"; exit 1 ;;
+          esac
+          echo "image_exists=${exists}" >> "$GITHUB_OUTPUT"
+          if [ "$exists" = "true" ]; then
+            echo "Image ${DOCKER_NAMESPACE}/${DOTCLEAR_IMAGE}:${TAG} found." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Image ${DOCKER_NAMESPACE}/${DOTCLEAR_IMAGE}:${TAG} not found." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-      - name: found
-        if: (steps.registry.outputs.image_exists == 'true')
+      - name: Decide
+        id: decide
+        env:
+          TAG: ${{ steps.dotclear.outputs.tag }}
+          PUBLISHED: ${{ steps.published.outputs.version }}
+          EXISTS: ${{ steps.registry.outputs.image_exists }}
+          FORCE: ${{ inputs.force_rebuild }}
+          TELEGRAM_ID: ${{ secrets.TELEGRAM_ID }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          SUMMARY=$'Image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} found.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          # 2.40.0 and 2.40 are the same version
+          function normalize { echo "$1" | sed -E 's/(\.0)+$//'; }
+          build=false
+          if [ "$EXISTS" = "false" ]; then
+            build=true
+          elif [ "$FORCE" = "true" ]; then
+            build=true
+            echo "Rebuilding image ${DOCKER_NAMESPACE}/${DOTCLEAR_IMAGE}:${TAG} is forced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "$build" = "true" ] && [ -n "$PUBLISHED" ] && [ "$(normalize "$PUBLISHED")" != "$(normalize "$TAG")" ]; then
+            build=false
+            echo "::warning::Dotclear ${TAG} is tagged but published stable release is ${PUBLISHED}, image not built"
+            echo "Dotclear ${TAG} is tagged but published stable release is ${PUBLISHED}: image is not built, next run will try again." >> "$GITHUB_STEP_SUMMARY"
+            if [ -n "$TELEGRAM_ID" ] && [ -n "$TELEGRAM_TOKEN" ]; then
+              text="⏳ <b>${DOTCLEAR_IMAGE}</b>: Dotclear <b>${TAG}</b> is tagged but published stable release is still <b>${PUBLISHED}</b>, stable image not built yet."
+              text+=$'\n'"<a href=\"${RUN_URL}\">Workflow run</a>"
+              curl -fsS -o /dev/null --retry 3 "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+                --data-urlencode "chat_id=${TELEGRAM_ID}" \
+                --data-urlencode "parse_mode=HTML" \
+                --data-urlencode "disable_web_page_preview=true" \
+                --data-urlencode "text=${text}" || echo "::warning::Telegram message not sent"
+            fi
+          fi
+          echo "build=${build}" >> "$GITHUB_OUTPUT"
 
-      - name: rebuild
-        if: ((steps.registry.outputs.image_exists == 'true') && (github.event.inputs.force_rebuild == 'true'))
+  # Stable images are frozen: the version branch is created once from master
+  # and is never moved by this workflow.
+  create_branch:
+    needs: check_image
+    if: ${{ needs.check_image.outputs.build == 'true' }}
+    name: Create version branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Create repository branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ needs.check_image.outputs.version }}
         run: |
-          SUMMARY=$'Rebuilding image ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ steps.dotclear.outputs.tag }} is forced.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-      - name: Check repository branch
-        id: branch
-        uses: GuillaumeFalourd/branch-exists@v1.2
-        with:
-          branch: ${{ steps.dotclear.outputs.tag }}
+          if git ls-remote --exit-code --heads "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" "refs/heads/${BRANCH}" > /dev/null; then
+            echo "Branch ${BRANCH} already exists, it is not modified." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/heads/${BRANCH}" -f "sha=${GITHUB_SHA}" > /dev/null
+            echo "Branch ${BRANCH} has been created from ${GITHUB_REF_NAME} (${GITHUB_SHA})." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   do_image:
-    needs: check_image
-    if: ((needs.check_image.outputs.has_image == 'false') || (github.event.inputs.force_rebuild == 'true'))
-    name: Build and push latest and versionned images
-    runs-on: ubuntu-latest
+    needs: [check_image, create_branch]
+    name: Stable image
     permissions:
+      contents: read
       packages: write
-      contents: write
-      attestations: write
-      id-token: write
-    steps:
-      - name: Check out the repo
-        if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true'))
-        uses: actions/checkout@v7
-
-      - name: Create repository branch
-        if: ((needs.check_image.outputs.has_branch == 'false') || (github.event.inputs.force_rebuild == 'true'))
-        id: create
-        uses: peterjgrainger/action-create-branch@v4.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          branch: ${{ needs.check_image.outputs.version }}
-
-      - name: notcreated
-        if: (steps.create.outputs.created != 'true')
-        run: |
-          SUMMARY=$'Branch ${{ needs.check_image.outputs.version }} has not been created.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-      - name: created
-        if: (steps.create.outputs.created == 'true')
-        run: |
-          SUMMARY=$' Branch ${{ needs.check_image.outputs.version }} has been created.'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-      - name: Check out the repo
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.check_image.outputs.version }}
-        
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Log in to Github registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: set lower case github repository
-        run: |
-          echo "GITHUB_REPOSITORY=${REPO,,}" >>${GITHUB_ENV}
-        env:
-          REPO: '${{ github.repository }}'
-
-      - name: Build and push images
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          sbom: true
-          push: true
-          tags: |
-            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}
-            ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:latest
-            ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ needs.check_image.outputs.version }}
-            ghcr.io/${{ env.GITHUB_REPOSITORY }}:latest
-          build-args: CANAL=${{ env.DOTCLEAR_CANAL }}
-          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Docker Scout stable
-        id: docker-scout
-        uses: docker/scout-action@v1.29.0
-        with:
-          command: environment,quickview,cves,recommendations
-          image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}
-          environment: stable
-          organization: ${{ env.DOCKER_NAMESPACE }}
-          write-comment: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker Scout latest
-        id: docker-scout2
-        uses: docker/scout-action@v1.29.0
-        with:
-          command: environment,quickview,cves,recommendations
-          image: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOTCLEAR_IMAGE }}:latest
-          environment: latest
-          organization: ${{ env.DOCKER_NAMESPACE }}
-          write-comment: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Send Telegram Message Ok
-        uses: appleboy/telegram-action@master
-        env:
-          GITHUB_CONTEXT: ${{toJSON(github)}}
-        with:
-          to: ${{ secrets.TELEGRAM_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: Images __${{ env.DOTCLEAR_IMAGE }}:latest__ and  __${{ env.DOTCLEAR_IMAGE }}:${{ needs.check_image.outputs.version }}__ successfully generated.
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      canal: stable
+      ref: ${{ needs.check_image.outputs.version }}
+      tags: ${{ needs.check_image.outputs.version }} latest
+      scout_environment: stable

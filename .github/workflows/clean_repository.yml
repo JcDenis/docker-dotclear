@@ -7,17 +7,18 @@ on:
       days:
         description: 'retain days'
         required: true
-        default: 15
+        default: '15'
         type: choice
         options:
-        - 1
-        - 2
-        - 7
-        - 15
+        - '1'
+        - '2'
+        - '7'
+        - '15'
 
 jobs:
   del_runs:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       actions: write
       contents: read
@@ -27,5 +28,6 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: ${{ github.event.inputs.days }}
+          # Scheduled runs have no input
+          retain_days: ${{ inputs.days || '15' }}
           keep_minimum_runs: 7
