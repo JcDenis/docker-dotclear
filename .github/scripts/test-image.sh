@@ -4,7 +4,7 @@
 # Usage: test-image.sh <image> [previous image]
 #
 # 1. Fresh start: the image starts on an empty volume and web server answers.
-# 2. Upgrade: Dotclear is installed (SQLite, command line) with the previous
+# 2. Upgrade: Dotclear is installed (SQLite, web installation) with the previous
 #    image, then the image is started on the same volume and must serve the
 #    blog and its administration. If the previous image is not given or not
 #    available, Dotclear is installed with the tested image.
@@ -28,7 +28,9 @@ function start {
   # $1 = image, $2 = "volume" to use the test volume
   clean
   if [ "${2:-}" = "volume" ]; then
-    docker run -d --name "$NAME" -p "${PORT}:80" -v "${VOLUME}:/var/www/dotclear" "$1" > /dev/null
+    docker run -d --name "$NAME" -p "${PORT}:80" -v "${VOLUME}:/var/www/dotclear" \
+      -e DC_DBDRIVER=sqlite -e DC_DBNAME=/var/www/dotclear/sqlite.db -e DC_ADMINMAILFROM=test@example.com \
+      "$1" > /dev/null
   else
     docker run -d --name "$NAME" -p "${PORT}:80" "$1" > /dev/null
   fi
@@ -79,21 +81,25 @@ function expect_ok {
 }
 
 function install {
-  # Dotclear command line installation needs two runs (configuration, then database)
-  for step in 1 2; do
-    echo "Dotclear installation, step ${step}"
-    # (installer prints only "1" in non interactive mode)
-    docker exec -u www -w /var/www/dotclear/app "$NAME" sh -c "\"\$DC_DOCKER_PHP\" admin/install/index.php -n \
-      --dbdriver=pdosqlite \
-      --dbname=/var/www/dotclear/sqlite.db \
-      --adminemail=test@example.com \
-      --uemail=test@example.com \
-      --ulogin=tester \
-      --upassword=Dotclear-test-1 \
-      --adminurl=${URL}/admin/ \
-      --blogurl=${URL}/default \
-      --urlscan=path_info"
-  done
+  # Web installation, as described in README: the configuration wizard uses
+  # the environment variables of the container, then the form creates the user
+  local page code
+  page=$(curl -sS -o /dev/null -L --max-redirs 5 -w '%{http_code} %{url_effective}' "${URL}/admin/install/index.php" || true)
+  echo "Installation wizard => ${page}"
+  code=$(curl -sS -o /dev/null -L --max-redirs 5 -w '%{http_code}' \
+    --data-urlencode 'u_email=test@example.com' \
+    --data-urlencode 'u_firstname=Test' \
+    --data-urlencode 'u_name=Test' \
+    --data-urlencode 'u_login=tester' \
+    --data-urlencode 'u_pwd=Dotclear-test-1' \
+    --data-urlencode 'u_pwd2=Dotclear-test-1' \
+    "${URL}/admin/install/index.php" || true)
+  echo "Installation => HTTP ${code}"
+  if [ "$code" != "200" ]; then
+    echo "::error::Dotclear installation failed"
+    docker logs "$NAME" 2>&1 | grep -v Deprecated | tail -n 40 || true
+    exit 1
+  fi
 }
 
 function login {
