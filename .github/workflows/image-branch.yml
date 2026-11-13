@@ -1,4 +1,6 @@
-name: Build and push image from branch
+# Build an image from the selected branch, tagged with the branch name.
+# For a version branch, see also etc/dotclear-stable.lock.
+name: Image - from a branch (manual)
 
 on:
   workflow_dispatch:
@@ -32,7 +34,7 @@ jobs:
             echo "Image is built with Dotclear archive ${archive}." >> "$GITHUB_STEP_SUMMARY"
           elif echo "$GITHUB_REF_NAME" | grep -Eq '^[0-9][0-9.]*$'; then
             function normalize { echo "$1" | sed -E 's/(\.0)+$//'; }
-            published=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import re, sys, xml.etree.ElementTree as ET; r = [x for x in ET.parse(sys.stdin).getroot().iter("release") if x.get("name") == "stable"]; r.sort(key=lambda x: [int(n) for n in re.findall("[0-9]+", x.get("version", ""))]); print(r[-1].get("version", "") if r else "")' || true)
+            published=$(bash .github/scripts/dotclear-release.sh stable | sed -n 's/^version=//p')
             if [ -z "$published" ]; then
               echo "::error::Published Dotclear stable version not found, cannot check branch ${GITHUB_REF_NAME}"
               exit 1
@@ -51,7 +53,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: ./.github/workflows/build.yml
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/reusable-build.yml
     secrets: inherit
     with:
       canal: stable

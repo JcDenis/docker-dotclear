@@ -1,18 +1,17 @@
-name: Build and push stable image
+# Stable image is built once, when a new Dotclear release is published.
+# To build again the last stable image, use workflow "2. Rebuild last stable image".
+name: Image - stable (new Dotclear release)
 
 on:
   schedule:
   - cron: '15 10 * * *'
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      force_rebuild:
-        description: 'rebuild'
+      force:
+        description: 'Build image even if it already exists'
+        required: false
         type: boolean
-        required: true
-
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
+        default: false
 
 permissions:
   contents: read
@@ -34,6 +33,9 @@ jobs:
       archive_url: ${{ steps.published.outputs.url }}
       archive_md5: ${{ steps.published.outputs.md5 }}
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
       - name: Get last dotclear repository tag
         id: dotclear
         run: |
@@ -50,25 +52,13 @@ jobs:
       - name: Get published Dotclear stable release
         id: published
         run: |
-          curl -fsSL --retry 3 -o versions.xml https://download.dotclear.org/versions.xml || true
-          # If several stable releases are listed, the highest version is used
-          function attribute {
-            python3 -c 'import re, sys, xml.etree.ElementTree as ET; r = [x for x in ET.parse("versions.xml").getroot().iter("release") if x.get("name") == "stable"]; r.sort(key=lambda x: [int(n) for n in re.findall("[0-9]+", x.get("version", ""))]); print(r[-1].get(sys.argv[1], "") if r else "")' "$1" 2> /dev/null || true
-          }
-          version=$(attribute version)
-          url=$(attribute href)
-          md5=$(attribute checksum)
-          # Values are written in a file used by the Dockerfile, check them
-          if ! echo "$url" | grep -Eq '^https?://download\.dotclear\.org/[A-Za-z0-9._/-]+\.zip$' || ! echo "$md5" | grep -Eq '^[0-9a-f]{32}$'; then
+          release=$(bash .github/scripts/dotclear-release.sh stable)
+          echo "$release" >> "$GITHUB_OUTPUT"
+          version=$(echo "$release" | sed -n 's/^version=//p')
+          url=$(echo "$release" | sed -n 's/^url=//p')
+          if [ -z "$url" ]; then
             echo "::warning::Dotclear stable archive URL or checksum not found in versions.xml"
-            url=''
-            md5=''
           fi
-          {
-            echo "version=${version}"
-            echo "url=${url}"
-            echo "md5=${md5}"
-          } >> "$GITHUB_OUTPUT"
           echo "Published Dotclear stable version is ${version:-unknown} (${url:-archive not found})." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check registry image
@@ -95,7 +85,7 @@ jobs:
           TAG: ${{ steps.dotclear.outputs.tag }}
           PUBLISHED: ${{ steps.published.outputs.version }}
           EXISTS: ${{ steps.registry.outputs.image_exists }}
-          FORCE: ${{ inputs.force_rebuild }}
+          FORCE: ${{ inputs.force }}
           TELEGRAM_ID: ${{ secrets.TELEGRAM_ID }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -113,15 +103,9 @@ jobs:
             build=false
             echo "::warning::Dotclear ${TAG} is tagged but published stable release is ${PUBLISHED}, image not built"
             echo "Dotclear ${TAG} is tagged but published stable release is ${PUBLISHED}: image is not built, next run will try again." >> "$GITHUB_STEP_SUMMARY"
-            if [ -n "$TELEGRAM_ID" ] && [ -n "$TELEGRAM_TOKEN" ]; then
-              text="⏳ <b>${DOTCLEAR_IMAGE}</b>: Dotclear <b>${TAG}</b> is tagged but published stable release is still <b>${PUBLISHED}</b>, stable image not built yet."
-              text+=$'\n'"<a href=\"${RUN_URL}\">Workflow run</a>"
-              curl -fsS -o /dev/null --retry 3 "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
-                --data-urlencode "chat_id=${TELEGRAM_ID}" \
-                --data-urlencode "parse_mode=HTML" \
-                --data-urlencode "disable_web_page_preview=true" \
-                --data-urlencode "text=${text}" || echo "::warning::Telegram message not sent"
-            fi
+            text="⏳ <b>${DOTCLEAR_IMAGE}</b>: Dotclear <b>${TAG}</b> is tagged but published stable release is still <b>${PUBLISHED}</b>, stable image not built yet."
+            text+=$'\n'"<a href=\"${RUN_URL}\">Workflow run</a>"
+            bash .github/scripts/telegram.sh "$text"
           fi
           echo "build=${build}" >> "$GITHUB_OUTPUT"
 
@@ -180,10 +164,72 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: ./.github/workflows/build.yml
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/reusable-build.yml
     secrets: inherit
     with:
       canal: stable
       ref: ${{ needs.check_image.outputs.version }}
       tags: ${{ needs.check_image.outputs.version }} latest
+      previous_tag: latest
+      archive_checksum: ${{ needs.check_image.outputs.archive_md5 }}
       scout_environment: stable
+
+  # One GitHub release by stable image (tag vX.Y.Z on the version branch),
+  # with the versions of what the image contains. Updated if image is rebuilt.
+  release:
+    needs: [check_image, do_image]
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out version branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.check_image.outputs.version }}
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check_image.outputs.version }}
+          DIGEST: ${{ needs.do_image.outputs.digest }}
+          DOTCLEAR: ${{ needs.do_image.outputs.dotclear }}
+          ALPINE: ${{ needs.do_image.outputs.alpine }}
+          NGINX: ${{ needs.do_image.outputs.nginx }}
+          PHP: ${{ needs.do_image.outputs.php }}
+        run: |
+          function plugin { sed -n "s/^\s*DC_DOCKER_PLUGIN_$1=\([0-9][0-9.]*\).*/\1/p" Dockerfile; }
+          archive=$(sed -n 's/^url=//p' etc/dotclear-stable.lock 2> /dev/null || true)
+          md5=$(sed -n 's/^md5=//p' etc/dotclear-stable.lock 2> /dev/null || true)
+          {
+            echo "Docker image of Dotclear ${VERSION}."
+            echo
+            echo "    docker pull ${DOCKER_NAMESPACE}/${DOTCLEAR_IMAGE}:${VERSION}"
+            echo "    docker pull ghcr.io/${GITHUB_REPOSITORY,,}:${VERSION}"
+            echo
+            echo "| Component | Version |"
+            echo "| --- | --- |"
+            echo "| Dotclear | ${DOTCLEAR:-unknown} |"
+            echo "| Alpine | ${ALPINE:-unknown} |"
+            echo "| Nginx | ${NGINX:-unknown} |"
+            echo "| PHP | ${PHP:-unknown} |"
+            echo "| Plugin DotclearWatch | $(plugin DOTCLEARWATCH) |"
+            echo "| Plugin dcLog | $(plugin DCLOG) |"
+            echo "| Plugin sysInfo | $(plugin SYSINFO) |"
+            echo "| Plugin TemplateHelper | $(plugin TEMPLATEHELPER) |"
+            echo
+            echo "* Image digest: \`${DIGEST}\`"
+            if [ -n "$archive" ]; then
+              echo "* Dotclear archive: ${archive} (md5 \`${md5}\`)"
+            fi
+            echo "* Built on $(date -u '+%Y-%m-%d %H:%M') UTC from branch \`${VERSION}\`"
+          } > notes.md
+          cat notes.md >> "$GITHUB_STEP_SUMMARY"
+          if gh release view "v${VERSION}" > /dev/null 2>&1; then
+            gh release edit "v${VERSION}" --notes-file notes.md
+          else
+            gh release create "v${VERSION}" --target "${VERSION}" --title "Dotclear ${VERSION}" --notes-file notes.md
+          fi

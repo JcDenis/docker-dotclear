@@ -1,0 +1,56 @@
+# Dev image is built every day, only if Dotclear unstable release or sources of
+# the image have changed, and every monday for Alpine packages updates.
+# To build it at any time, use workflow "1. Rebuild dev image".
+name: Image - dev (daily)
+
+on:
+  schedule:
+  - cron: '15 6 * * *'
+  workflow_call:
+    inputs:
+      force:
+        description: 'Build image even if nothing has changed'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check dev image
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      build: ${{ steps.check.outputs.build }}
+      checksum: ${{ steps.check.outputs.checksum }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
+      - name: Check Dotclear release and published image
+        id: check
+        env:
+          FORCE: ${{ inputs.force }}
+        run: bash .github/scripts/check-update.sh unstable dev "$(git rev-parse HEAD)" "$FORCE"
+
+  do_image:
+    needs: check
+    if: ${{ needs.check.outputs.build == 'true' }}
+    name: Dev image
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/reusable-build.yml
+    secrets: inherit
+    with:
+      canal: unstable
+      tags: dev
+      previous_tag: dev
+      archive_checksum: ${{ needs.check.outputs.checksum }}
+      scout_environment: unstable
+      # No linux/arm/v6 for dev image
+      platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x

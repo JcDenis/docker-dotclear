@@ -1,0 +1,21 @@
+# Manual build of the dev image, whatever has changed or not.
+name: 1. Rebuild dev image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    name: Rebuild
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/image-dev.yml
+    secrets: inherit
+    with:
+      force: true

@@ -1,6 +1,6 @@
 # Update plugins versions of the Dockerfile on master branch.
 # Only master (dev image) is updated, version branches are not modified.
-name: Check plugins
+name: Check - plugins versions (daily)
 
 on:
   schedule:

@@ -1,0 +1,68 @@
+# Checks of pull requests and of master branch:
+# workflows, scripts and Dockerfile syntax, then image build, container start,
+# Dotclear installation and upgrade from the published image.
+name: Check - tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - 'exemple/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Check workflows and Dockerfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
+      - name: Check workflows
+        run: docker run --rm -v "${PWD}:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+
+      - name: Check scripts
+        run: shellcheck .github/scripts/*.sh
+
+      - name: Check Dockerfile
+        run: docker run --rm -i hadolint/hadolint:v2.15.1 hadolint --failure-threshold error - < Dockerfile
+
+  image:
+    name: Build and test ${{ matrix.canal }} image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - canal: stable
+            tag: latest
+          - canal: testing
+            tag: testing
+          - canal: unstable
+            tag: dev
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build --build-arg "CANAL=${{ matrix.canal }}" -t docker-dotclear:test .
+
+      # Fresh start, then Dotclear installation with the published image of
+      # this canal and upgrade to the built image
+      - name: Test image
+        env:
+          PREVIOUS: jcpd/docker-dotclear:${{ matrix.tag }}
+        run: bash .github/scripts/test-image.sh docker-dotclear:test "$PREVIOUS"
