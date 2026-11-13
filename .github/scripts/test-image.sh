@@ -72,6 +72,12 @@ function expect_ok {
     echo "::error::Unexpected HTTP code ${code} for $1"
     echo "--- Response"
     curl -sS -i "${URL}$1" 2>&1 | head -n 30 || true
+    echo "--- DEBUG probes"
+    for u in / /default /default/ /index.php /index.php/ /default/index.php/ "/default/?x=1" /default/feed/atom; do
+      echo "$u => $(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "${URL}${u}") | localhost: $(curl -sS -o /dev/null -H 'Host: localhost' -w '%{http_code} %{redirect_url}' "${URL}${u}")"
+    done
+    docker exec "$NAME" sh -c 'echo "<?php var_export([\$_SERVER[\"PATH_INFO\"] ?? null, \$_SERVER[\"DC_BLOG_ID\"] ?? null, \$_SERVER[\"REQUEST_URI\"] ?? null, \$_SERVER[\"SCRIPT_NAME\"] ?? null]);" > /var/www/dotclear/app/zz.php'
+    echo "zz: $(curl -sS "${URL}/default/zz.php/abc") // $(curl -sS "${URL}/zz.php/")"
     echo "--- DEBUG database"
     docker exec "$NAME" sh -c '"$DC_DOCKER_PHP" -r "\$p=new PDO(\"sqlite:/var/www/dotclear/sqlite.db\"); foreach ([\"select blog_id,blog_url,blog_status from dc_blog\",\"select module,version from dc_version\",\"select setting_id,blog_id,setting_value from dc_setting where setting_id in (\\\"url_scan\\\",\\\"public_path\\\",\\\"themes_path\\\",\\\"public_url\\\")\"] as \$q) { foreach (\$p->query(\$q) as \$r) { echo implode(\" | \", array_unique(\$r)), PHP_EOL; } }"' 2>&1 | grep -v Deprecated | head -n 60 || true
     echo "--- Container logs"
