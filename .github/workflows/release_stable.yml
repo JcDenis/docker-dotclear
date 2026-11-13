@@ -31,6 +31,8 @@ jobs:
     outputs:
       version: ${{ steps.dotclear.outputs.tag }}
       build: ${{ steps.decide.outputs.build }}
+      archive_url: ${{ steps.published.outputs.url }}
+      archive_md5: ${{ steps.published.outputs.md5 }}
     steps:
       - name: Get last dotclear repository tag
         id: dotclear
@@ -43,14 +45,30 @@ jobs:
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "Last Dotclear repository tag is ${tag}." >> "$GITHUB_STEP_SUMMARY"
 
-      # Dockerfile downloads the stable release announced by versions.xml,
-      # it can be late on the repository tag.
-      - name: Get published Dotclear stable version
+      # Stable release announced by versions.xml can be late on the repository tag.
+      # Its archive URL and checksum are stored in the version branch (see create_branch).
+      - name: Get published Dotclear stable release
         id: published
         run: |
-          version=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get("version", "") for r in ET.parse(sys.stdin).getroot().iter("release") if r.get("name") == "stable"), ""))' || true)
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "Published Dotclear stable version is ${version:-unknown}." >> "$GITHUB_STEP_SUMMARY"
+          curl -fsSL --retry 3 -o versions.xml https://download.dotclear.org/versions.xml || true
+          function attribute {
+            python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get(sys.argv[1], "") for r in ET.parse("versions.xml").getroot().iter("release") if r.get("name") == "stable"), ""))' "$1" 2> /dev/null || true
+          }
+          version=$(attribute version)
+          url=$(attribute href)
+          md5=$(attribute checksum)
+          # Values are written in a file used by the Dockerfile, check them
+          if ! echo "$url" | grep -Eq '^https?://download\.dotclear\.org/[A-Za-z0-9._/-]+\.zip$' || ! echo "$md5" | grep -Eq '^[0-9a-f]{32}$'; then
+            echo "::warning::Dotclear stable archive URL or checksum not found in versions.xml"
+            url=''
+            md5=''
+          fi
+          {
+            echo "version=${version}"
+            echo "url=${url}"
+            echo "md5=${md5}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Published Dotclear stable version is ${version:-unknown} (${url:-archive not found})." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check registry image
         id: registry
@@ -107,7 +125,9 @@ jobs:
           echo "build=${build}" >> "$GITHUB_OUTPUT"
 
   # Stable images are frozen: the version branch is created once from master
-  # and is never moved by this workflow.
+  # with the URL and checksum of its Dotclear archive (etc/dotclear-stable.lock),
+  # then this branch is never modified by this workflow. Rebuilding the image
+  # from this branch always uses the same Dotclear archive.
   create_branch:
     needs: check_image
     if: ${{ needs.check_image.outputs.build == 'true' }}
@@ -117,17 +137,41 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Create repository branch
+      - name: Check repository branch
+        id: branch
         env:
-          GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ needs.check_image.outputs.version }}
         run: |
           if git ls-remote --exit-code --heads "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" "refs/heads/${BRANCH}" > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "Branch ${BRANCH} already exists, it is not modified." >> "$GITHUB_STEP_SUMMARY"
           else
-            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/heads/${BRANCH}" -f "sha=${GITHUB_SHA}" > /dev/null
-            echo "Branch ${BRANCH} has been created from ${GITHUB_REF_NAME} (${GITHUB_SHA})." >> "$GITHUB_STEP_SUMMARY"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Check out the repo
+        if: ${{ steps.branch.outputs.exists == 'false' }}
+        uses: actions/checkout@v7
+
+      - name: Create repository branch
+        if: ${{ steps.branch.outputs.exists == 'false' }}
+        env:
+          BRANCH: ${{ needs.check_image.outputs.version }}
+          ARCHIVE_URL: ${{ needs.check_image.outputs.archive_url }}
+          ARCHIVE_MD5: ${{ needs.check_image.outputs.archive_md5 }}
+        run: |
+          git config user.name 'github-actions'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$BRANCH"
+          if [ -n "$ARCHIVE_URL" ] && [ -n "$ARCHIVE_MD5" ] && [ -f etc/dotclear-stable.lock ]; then
+            sed -i -e "s#^url=.*#url=${ARCHIVE_URL}#" -e "s#^md5=.*#md5=${ARCHIVE_MD5}#" etc/dotclear-stable.lock
+            git commit -q -m "Set Dotclear ${BRANCH} archive" etc/dotclear-stable.lock
+            echo "Branch ${BRANCH} has been created from ${GITHUB_REF_NAME} with Dotclear archive ${ARCHIVE_URL}." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Branch ${BRANCH} created without Dotclear archive, its image can not be rebuilt after next Dotclear release"
+            echo "Branch ${BRANCH} has been created from ${GITHUB_REF_NAME} without Dotclear archive." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          git push origin "$BRANCH"
 
   do_image:
     needs: [check_image, create_branch]

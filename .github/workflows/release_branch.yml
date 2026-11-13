@@ -14,6 +14,9 @@ jobs:
     outputs:
       tag: ${{ steps.check.outputs.tag }}
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
       - name: Check branch
         id: check
         run: |
@@ -21,9 +24,13 @@ jobs:
             echo "::error::This workflow must be launched from a branch other than master"
             exit 1
           fi
+          # A version branch can be rebuilt if its Dotclear archive is set, else
           # Dockerfile downloads the current stable release of Dotclear: an old
           # version branch would give an image with a wrong Dotclear version.
-          if echo "$GITHUB_REF_NAME" | grep -Eq '^[0-9][0-9.]*$'; then
+          archive=$(sed -n 's/^url=//p' etc/dotclear-stable.lock 2> /dev/null || true)
+          if [ -n "$archive" ]; then
+            echo "Image is built with Dotclear archive ${archive}." >> "$GITHUB_STEP_SUMMARY"
+          elif echo "$GITHUB_REF_NAME" | grep -Eq '^[0-9][0-9.]*$'; then
             function normalize { echo "$1" | sed -E 's/(\.0)+$//'; }
             published=$(curl -fsSL --retry 3 https://download.dotclear.org/versions.xml | python3 -c 'import sys, xml.etree.ElementTree as ET; print(next((r.get("version", "") for r in ET.parse(sys.stdin).getroot().iter("release") if r.get("name") == "stable"), ""))' || true)
             if [ -z "$published" ]; then

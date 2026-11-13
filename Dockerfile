@@ -96,13 +96,27 @@ COPY etc/php-fpm.conf /etc/${DC_DOCKER_PHP}/php-fpm.d/www.conf
 # Dotclear
 ##
 
-# Download latest Dotclear version
-RUN curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml" \
-    && curl -fsSL -o dotclear.zip $(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@href" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') \
-    && echo "$(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@checksum" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}') dotclear.zip" | md5sum -c - \
+# Download Dotclear:
+# - stable image of a version branch uses the archive set in dotclear-stable.lock
+#   (if archive is no more in "latest" directory, it is taken from "attic" directory)
+# - other images use current release of their canal from versions.xml
+COPY etc/dotclear-stable.lock /tmp/dotclear-stable.lock
+RUN url="" && md5="" \
+    && if [ "$DC_DOCKER_CANAL" = "stable" ]; then \
+        url=$(sed -n 's/^url=//p' /tmp/dotclear-stable.lock); \
+        md5=$(sed -n 's/^md5=//p' /tmp/dotclear-stable.lock); \
+    fi \
+    && if [ -z "$url" ] || [ -z "$md5" ]; then \
+        curl -fsSL -o versions.xml "http://download.dotclear.org/versions.xml"; \
+        url=$(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@href" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}'); \
+        md5=$(xmllint --xpath "//release[@name='$DC_DOCKER_CANAL']/@checksum" versions.xml | awk -F'[="]' '!/>/{print $(NF-1)}'); \
+    fi \
+    && echo "Dotclear archive: $url" \
+    && { curl -fsSL -o dotclear.zip "$url" || curl -fsSL -o dotclear.zip "$(echo "$url" | sed 's#/latest/#/attic/#')"; } \
+    && echo "$md5  dotclear.zip" | md5sum -c - \
     && mkdir -p /usr/src/dotclear \
     && unzip -d /usr/src dotclear.zip \
-    && rm dotclear.zip
+    && rm dotclear.zip /tmp/dotclear-stable.lock
 
 # Create predefined www structure
 COPY www /var/lib/dotclear
