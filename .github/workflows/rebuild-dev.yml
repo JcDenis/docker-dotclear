@@ -23,3 +23,17 @@ jobs:
     secrets: inherit
     with:
       force: true
+
+  # TEMPORARY: test before merge, image must not be built again
+  unchanged:
+    needs: rebuild
+    name: Unchanged
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/image-dev.yml
+    secrets: inherit
+    with:
+      force: false
