@@ -57,7 +57,7 @@ class Install
                 } else {
                     // From command line install, host is unknown: keep given URL in path info mode
                     $blog_url = (string) App::blogs()->getBlog($blog_id)->f('blog_url');
-                    $blog_url = rtrim((string) preg_replace('#/?index\.php\?$#', '', $blog_url), '/') . '/';
+                    $blog_url = rtrim((string) preg_replace('#/?index\.php[/?]?$#', '', $blog_url), '/') . '/';
                 }
                 $cur           = App::blog()->openBlogCursor();
                 $cur->blog_url = $blog_url;

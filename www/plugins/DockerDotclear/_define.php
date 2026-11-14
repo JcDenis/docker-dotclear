@@ -17,7 +17,7 @@ $this->registerModule(
     'DockerDotclear',
     'Helpers for dotclear docker image',
     'Jean-Christian Paul Denis',
-    '2026.11.07',
+    '2026.11.14',
     [
         'type' => 'plugin',
     ]
