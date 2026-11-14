@@ -1,0 +1,71 @@
+# Weekly check of the last stable image: a Telegram message is sent if critical
+# or high vulnerabilities with an available fix are found. Stable images are
+# frozen, fix them with workflow "2. Rebuild last stable image".
+name: Check - security of last stable image (weekly)
+
+on:
+  schedule:
+  - cron: '40 7 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: jcpd/docker-dotclear:latest
+
+jobs:
+  scan:
+    name: Scan last stable image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Docker Scout
+        id: scout
+        continue-on-error: true
+        uses: docker/scout-action@v1.29.0
+        with:
+          command: cves
+          image: ${{ env.IMAGE }}
+          only-severities: critical,high
+          only-fixed: true
+          sarif-file: scout.sarif
+          organization: jcpd
+
+      - name: Read results
+        env:
+          TELEGRAM_ID: ${{ secrets.TELEGRAM_ID }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          SCOUT: ${{ steps.scout.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$SCOUT" != "success" ] || [ ! -s scout.sarif ]; then
+            echo "::error::Docker Scout analysis failed"
+            text="⚠️ <b>docker-dotclear</b>: security check of <code>${IMAGE}</code> failed, analysis not done."
+            text+=$'\n'"<a href=\"${RUN_URL}\">Workflow run</a>"
+            bash .github/scripts/telegram.sh "$text"
+            exit 1
+          fi
+          ids=$(jq -r '[.runs[].results[].ruleId] | unique | .[]' scout.sarif)
+          count=$(echo "$ids" | grep -c . || true)
+          if [ "$count" = "0" ]; then
+            echo "No critical or high vulnerability with an available fix in ${IMAGE}." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          list=$(echo "$ids" | head -n 10 | paste -sd ' ' -)
+          echo "::warning::${count} critical or high vulnerabilities with an available fix in ${IMAGE}"
+          echo "${count} critical or high vulnerabilities with an available fix in ${IMAGE}: ${list}" >> "$GITHUB_STEP_SUMMARY"
+          text="🛡 <b>docker-dotclear</b>: ${count} critical or high vulnerabilities with an available fix in <code>${IMAGE}</code>"
+          text+=$'\n'"<code>${list}</code>"
+          text+=$'\n'"To fix them, run workflow <b>2. Rebuild last stable image</b>."
+          text+=$'\n'"<a href=\"${RUN_URL}\">Workflow run</a>"
+          bash .github/scripts/telegram.sh "$text"

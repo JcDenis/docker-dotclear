@@ -4,9 +4,9 @@
 ![Docker image size](https://img.shields.io/docker/image-size/jcpd/docker-dotclear/latest)
 ![Stable image downloads](https://img.shields.io/docker/pulls/jcpd/docker-dotclear)
 
-![Stable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_stable.yml/badge.svg) 
-![Testing image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_testing.yml/badge.svg) 
-![Unstable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/release_unstable.yml/badge.svg) 
+![Stable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/image-stable.yml/badge.svg) 
+![Testing image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/image-testing.yml/badge.svg) 
+![Unstable image build](https://github.com/JcDenis/docker-dotclear/actions/workflows/image-dev.yml/badge.svg) 
 
 
 ## 1. THE SHORT WAY

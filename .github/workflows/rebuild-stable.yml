@@ -1,0 +1,23 @@
+# Manual build of the last stable image (x.y.z and latest tags), from its
+# version branch: same Dotclear archive and same Dockerfile as its first build,
+# with up to date Alpine packages. Use it for a security fix.
+name: 2. Rebuild last stable image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    name: Rebuild
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/image-stable.yml
+    secrets: inherit
+    with:
+      force: true
