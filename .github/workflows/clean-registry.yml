@@ -21,7 +21,8 @@ jobs:
   clean:
     name: Delete untagged images
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Deletions are limited to about 60 by minute, a first cleaning takes hours
+    timeout-minutes: 350
     permissions:
       contents: read
       packages: write
