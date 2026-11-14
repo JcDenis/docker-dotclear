@@ -3,6 +3,10 @@ name: 1. Rebuild dev image
 
 on:
   workflow_dispatch:
+  # TEMPORARY: test before merge
+  push:
+    branches:
+      - workflows-improve
 
 permissions:
   contents: read
