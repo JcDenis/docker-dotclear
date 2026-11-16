@@ -74,6 +74,7 @@ RUN apk add --no-cache --update \
     ${DC_DOCKER_PHP}-gmp \
     ${DC_DOCKER_PHP}-exif \
     ${DC_DOCKER_PHP}-tidy \
+    ${DC_DOCKER_PHP}-tokenizer \
     ${DC_DOCKER_PHP}-intl \
     ${DC_DOCKER_PHP}-mbstring \
     ${DC_DOCKER_PHP}-gettext \
