@@ -29,6 +29,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      # Docker Scout action downloads its binary without authentication,
+      # randomly refused by GitHub (HTTP 403): download it with the token
+      - name: Prepare Docker Scout
+        id: scout_binary
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/scout-binary.sh
+
       - name: Docker Scout
         id: scout
         continue-on-error: true
