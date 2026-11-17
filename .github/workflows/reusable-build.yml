@@ -177,6 +177,15 @@ jobs:
           subject-name: ${{ steps.names.outputs.ghcr }}
           subject-digest: ${{ steps.build.outputs.digest }}
 
+      # Docker Scout action downloads its binary without authentication,
+      # randomly refused by GitHub (HTTP 403): download it with the token
+      - name: Prepare Docker Scout
+        id: scout_binary
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash tools/.github/scripts/scout-binary.sh
+
       # A failing analysis must not mark a published image as failed
       - name: Docker Scout
         id: scout
@@ -215,7 +224,7 @@ jobs:
               text+=$'\n'"⚠️ Provenance attestation failed"
             fi
           else
-            failed=$(echo "$STEPS" | jq -r '[to_entries[] | select(.value.outcome == "failure" and .key != "scout" and .key != "attest") | .key] | join(", ")')
+            failed=$(echo "$STEPS" | jq -r '[to_entries[] | select(.value.outcome == "failure" and .key != "scout" and .key != "scout_binary" and .key != "attest") | .key] | join(", ")')
             text="❌ <b>${DOTCLEAR_IMAGE}</b>: ${CANAL} image build ${JOB_STATUS}, image not published"
             text+=$'\n'"Tags: <code>${TAGS}</code>"
             text+=$'\n'"Built from branch: <code>${BUILD_REF}</code>"
