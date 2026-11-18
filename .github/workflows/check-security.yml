@@ -73,8 +73,27 @@ jobs:
           list=$(echo "$ids" | head -n 10 | paste -sd ' ' -)
           echo "::warning::${count} critical or high vulnerabilities with an available fix in ${IMAGE}"
           echo "${count} critical or high vulnerabilities with an available fix in ${IMAGE}: ${list}" >> "$GITHUB_STEP_SUMMARY"
+          # Docker Scout reports a fix as soon as it exists in any Alpine branch
+          # (often edge only): a rebuild helps only if the Alpine branch of the
+          # image has package updates.
+          if check=$(docker run --rm --pull always --platform linux/amd64 --entrypoint /bin/sh "$IMAGE" \
+            -c 'cat /etc/alpine-release && apk update -q > /dev/null && apk upgrade --simulate' 2> /dev/null); then
+            alpine=$(echo "$check" | head -n 1)
+            updates=$(echo "$check" | tail -n +2 | grep -c 'Upgrading ' || true)
+          else
+            alpine=""
+            updates=""
+            echo "::warning::Packages updates of ${IMAGE} could not be checked"
+          fi
+          echo "Alpine ${alpine:-unknown}, packages updates: ${updates:-not checked}." >> "$GITHUB_STEP_SUMMARY"
           text="🛡 <b>docker-dotclear</b>: ${count} critical or high vulnerabilities with an available fix in <code>${IMAGE}</code>"
           text+=$'\n'"<code>${list}</code>"
-          text+=$'\n'"To fix them, run workflow <b>2. Rebuild last stable image</b>."
+          if [ "$updates" = "0" ]; then
+            text+=$'\n'"Fixes are not yet published for Alpine ${alpine}, nothing to do: a rebuild will fix them when they are."
+          elif [ -n "$updates" ]; then
+            text+=$'\n'"${updates} Alpine packages can be updated, run workflow <b>2. Rebuild last stable image</b>."
+          else
+            text+=$'\n'"Packages updates could not be checked, a rebuild with workflow <b>2. Rebuild last stable image</b> may fix them."
+          fi
           text+=$'\n'"<a href=\"${RUN_URL}\">Workflow run</a>"
           bash .github/scripts/telegram.sh "$text"
