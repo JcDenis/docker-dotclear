@@ -190,7 +190,7 @@ jobs:
       - name: Docker Scout
         id: scout
         continue-on-error: true
-        uses: docker/scout-action@v1.29.0
+        uses: docker/scout-action@v1.30.0
         with:
           command: environment,quickview,cves,recommendations
           image: ${{ steps.names.outputs.dockerhub }}:${{ steps.publish.outputs.first }}

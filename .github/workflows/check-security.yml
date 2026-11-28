@@ -41,7 +41,7 @@ jobs:
       - name: Docker Scout
         id: scout
         continue-on-error: true
-        uses: docker/scout-action@v1.29.0
+        uses: docker/scout-action@v1.30.0
         with:
           command: cves
           image: ${{ env.IMAGE }}
