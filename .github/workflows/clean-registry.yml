@@ -28,7 +28,7 @@ jobs:
       packages: write
     steps:
       - name: Delete untagged images
-        uses: dataaxiom/ghcr-cleanup-action@v1.2.2
+        uses: dataaxiom/ghcr-cleanup-action@v1.3.0
         with:
           token: ${{ github.token }}
           package: docker-dotclear
